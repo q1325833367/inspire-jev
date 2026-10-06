@@ -1,3 +1,4 @@
 DOM snapshot and decision policy adapted from browser-use/jev-ultrafast, commit 1231850a0bf1a0c0341fe408ef1668dbbfdfac46.
 MIT license; upstream copyright notice preserved in LICENSE.
 The OpenAI Browser runtime is loaded from the user installation and is not redistributed.
+Playwright MCP 0.0.83 (Microsoft Corporation), source commit f183dad4a52965583e3cc1d59b88cdc279e2e57d, is used as an optional internal browser connection backend under Apache-2.0. The official browser extension is installed separately and is not redistributed.

@@ -6,10 +6,10 @@ import {join} from 'node:path';
 import {homedir} from 'node:os';
 
 const argv=process.argv.slice(2),findings=[],checked=new Set(),known=[];
-const patterns=[['API key',/\b(?:sk-[A-Za-z0-9]{20,}|apikey_[A-Za-z0-9_]{30,}|AIza[0-9A-Za-z_-]{35})\b/],['GitHub token',/\b(?:gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,})\b/],['private key',/-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/]];
+const patterns=[['API key',/\b(?:sk-[A-Za-z0-9]{20,}|apikey_[A-Za-z0-9_]{30,}|AIza[0-9A-Za-z_-]{35})\b/],['GitHub token',/\b(?:gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,})\b/],['browser connection token',/PLAYWRIGHT_MCP_EXTENSION_TOKEN\s*=\s*["']?[A-Za-z0-9_-]{30,}/],['private key',/-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/]];
 for(const [key,value]of Object.entries(process.env))if(/(?:API_KEY|TOKEN)$/.test(key)&&value.length>15)known.push(value);
 for(const dir of [process.env.INSPIRE_JEV_HOME,process.env.JEV_AGENT_HOME,join(homedir(),'Library','Application Support','Jev Agent')].filter(Boolean)){
-  try{const c=JSON.parse(readFileSync(join(dir,'config.json'),'utf8'));if(c.envFile)for(const [key,value]of Object.entries(parseEnv(readFileSync(c.envFile,'utf8'))))if(key.endsWith('_API_KEY')&&value.length>15)known.push(value);}catch{}
+  try{const c=JSON.parse(readFileSync(join(dir,'config.json'),'utf8'));if(c.envFile)for(const [key,value]of Object.entries(parseEnv(readFileSync(c.envFile,'utf8'))))if(/_API_KEY$|_TOKEN$/.test(key)&&value.length>15)known.push(value);}catch{}
 }
 function inspect(name,data){
   if(checked.has(name))return;checked.add(name);const text=data.toString('utf8');

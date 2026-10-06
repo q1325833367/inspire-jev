@@ -21,7 +21,7 @@ try{
   let closing=false;const close=async()=>{if(closing)return;closing=true;try{await runtime.shutdown();process.exitCode=0;}catch(e){process.stderr.write(JSON.stringify({error:e.code||e.name,message:e.message})+'\n');process.exitCode=1;}};
   process.on('SIGINT',close);process.on('SIGTERM',close);process.stdin.on('end',close);
  }else if(command==='setup'){
-  const configured=await configure({envFile:flag('env-file'),modelProxy:flag('model-proxy'),browserProxy:flag('browser-proxy'),entry:flag('entry'),nonInteractive:argv.includes('--non-interactive')});
+  const configured=await configure({envFile:flag('env-file'),modelProxy:flag('model-proxy'),browserProxy:flag('browser-proxy'),entry:flag('entry'),browserMode:flag('browser-mode'),extensionProfile:flag('extension-profile'),extensionBrowser:flag('extension-browser'),nonInteractive:argv.includes('--non-interactive')});
   const installed=configured.entry&&configured.entry!=='none'?await installEntries({entry:configured.entry}):undefined;
   out({configured:true,home:configured.config.home,trace:false,models:publicCredentials(await readCredentials(configured.config.envFile,{requireKey:false})),installed});
  }else if(command==='config')out(await configCommand(argv[0]||'show',argv[1],{stdin:argv.includes('--stdin')}));

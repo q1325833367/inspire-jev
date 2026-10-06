@@ -220,6 +220,7 @@ async function drive(state, adapter, services, { signal, onProgress, saveCheckpo
       const entry = { id: randomUUID(), subgoal: step.id, kind: action.kind, label: action.label,
         phase:'prepared',preparedAt:new Date().toISOString(),effect: 'unknown', decisionSource: direct ? 'deterministic' : 'jev', valueSource: action.kind === 'fill' ? (step.value !== undefined || Object.hasOwn(task.inputs || {},action.label) ? 'provided' : 'generated') : undefined };
       const intent={kind:action.kind,selector:action.selector,href:action.href,label:action.label,documentId:action.documentId,documentUrl:action.documentUrl,frameIndex:action.frameIndex,
+        frameId:action.frameId,
         effectUrl:action.kind==='press'?step.checks.find(c=>c.kind==='url'&&c.equals)?.equals:undefined,
         expectedHash:action.kind==='fill'?createHash('sha256').update(String(value)).digest('hex'):undefined,expectedValue:action.kind==='check'?Boolean(value):undefined};
       state.actions.push(entry); state.pending = { id: entry.id, phase:'prepared',subgoal: step.id, kind: action.kind, label: action.label,intent };

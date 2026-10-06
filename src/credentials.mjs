@@ -4,7 +4,7 @@ import {join} from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {secureDirectory,secureFile} from './platform.mjs';
 
-export const providerKeys=['JEV_PROVIDER','LOCAL_JEV_ENGINE','TYPESAFE_API_KEY','TYPESAFE_BASE_URL','TYPESAFE_MODEL','LOCAL_JEV_BASE_URL','LOCAL_JEV_MODEL','LOCAL_JEV_API_KEY','LOCAL_JEV_TIMEOUT_MS','TEXT_MODEL_API_KEY','TEXT_MODEL_BASE_URL','TEXT_MODEL'];
+export const providerKeys=['JEV_PROVIDER','LOCAL_JEV_ENGINE','TYPESAFE_API_KEY','TYPESAFE_BASE_URL','TYPESAFE_MODEL','LOCAL_JEV_BASE_URL','LOCAL_JEV_MODEL','LOCAL_JEV_API_KEY','LOCAL_JEV_TIMEOUT_MS','TEXT_MODEL_API_KEY','TEXT_MODEL_BASE_URL','TEXT_MODEL','PLAYWRIGHT_MCP_EXTENSION_TOKEN'];
 export const providerDefaults={JEV_PROVIDER:'typesafe',LOCAL_JEV_ENGINE:'laya',TYPESAFE_BASE_URL:'https://api.typesafe.ai/v1/systemone',TYPESAFE_MODEL:'jev-latest',LOCAL_JEV_BASE_URL:'http://127.0.0.1:8769/v1/systemone',LOCAL_JEV_MODEL:'multilingual',LOCAL_JEV_TIMEOUT_MS:'25000',TEXT_MODEL_BASE_URL:'https://api.deepseek.com/v1',TEXT_MODEL:'deepseek-chat'};
 export function decisionEndpoint(config){
   const provider=config.JEV_PROVIDER||'typesafe';
@@ -40,4 +40,4 @@ function quoteEnv(value){
   }
   throw Error('配置值无法无损保存为 env 格式');
 }
-export function publicCredentials(values){return Object.fromEntries(providerKeys.map(key=>[key,key.endsWith('_API_KEY')?(values[key]?'已配置':'未配置'):(values[key]||'')]));}
+export function publicCredentials(values){return Object.fromEntries(providerKeys.map(key=>[key,/_API_KEY$|_TOKEN$/.test(key)?(values[key]?'已配置':'未配置'):(values[key]||'')]));}
