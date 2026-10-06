@@ -3,11 +3,21 @@ import {StdioClientTransport} from '@modelcontextprotocol/client/stdio';
 import {createRequire} from 'node:module';
 import {dirname,join} from 'node:path';
 import {createHash} from 'node:crypto';
+import {fileURLToPath} from 'node:url';
 import {capturePage,probeTarget,checkPage,extractPage} from './snapshot.mjs';
 
 const require=createRequire(import.meta.url);
 export const EXTENSION_BACKEND_VERSION='0.0.83';
 const fail=(code,message)=>Object.assign(Error(message),{code});
+export function publicBrowserMetadata(result,op){
+  const safe=item=>{
+    if(!item?.url)return item;
+    const u=new URL(item.url);
+    if(u.protocol==='chrome-extension:')return{...item,url:`${u.origin==='null'?'chrome-extension://'+u.host:u.origin}${u.pathname}`,title:'浏览器连接页',connectionPage:true};
+    return item;
+  };
+  return op==='tabs'?result.filter(t=>/^https?:/.test(t.url)).map(safe):op==='identity'?safe(result):result;
+}
 
 // Only these source-controlled operations can reach the upstream code tool.
 // Neither task text nor a model response is accepted as executable source.
@@ -73,7 +83,7 @@ export class ExtensionBridge{
     if(this.client)return this.info;
     if(this.connecting)return this.connecting;
     this.connecting=(async()=>{
-      const args=[join(dirname(require.resolve('@playwright/mcp/package.json')),'cli.js'),...(this.cdpEndpoint?['--cdp-endpoint',this.cdpEndpoint]:['--extension','--browser',this.config.extensionBrowser||'chrome','--profile-dir-name',this.config.extensionProfile||'Default']),'--console-level','error'];
+      const args=[...(!this.cdpEndpoint?['--import',fileURLToPath(new URL('./extension-compat.mjs',import.meta.url))]:[]),join(dirname(require.resolve('@playwright/mcp/package.json')),'cli.js'),...(this.cdpEndpoint?['--cdp-endpoint',this.cdpEndpoint]:['--extension','--browser',this.config.extensionBrowser||'chrome','--profile-dir-name',this.config.extensionProfile||'Default']),'--console-level','error','--snapshot-mode','none','--no-webmcp','--timeout-settle','0'];
       const env={...process.env};delete env.DEBUG;
       for(const key of Object.keys(env))if(/API_KEY|PASSWORD|SECRET|TOKEN/.test(key))delete env[key];
       if(this.config.extensionToken)env.PLAYWRIGHT_MCP_EXTENSION_TOKEN=this.config.extensionToken;
@@ -102,12 +112,12 @@ export class ExtensionBridge{
       catch{throw fail(this.authorized?'EXTENSION_CONNECTION_LOST':'EXTENSION_CONNECTION_REQUIRED',this.authorized?'已有浏览器连接不可用；不会创建替代网页':'需要完成官方扩展的连接授权；不会创建替代网页');}
       const text=response.content?.filter(c=>c.type==='text').map(c=>c.text).join('\n')||'';
       if(response.isError){
-        const code=text.includes('JEV_TAB_CHANGED')?'TAB_CHANGED':text.includes('JEV_FRAME_GONE')?'FRAME_GONE':text.includes('Extension')?'EXTENSION_CONNECTION_REQUIRED':'EXTENSION_OPERATION_FAILED';
-        throw fail(code,'已有标签页操作失败；请检查连接授权和原现场');
+        const code=text.includes('Target.attachToBrowserTarget')&&text.includes('Not allowed')?'EXTENSION_METADATA_UNSUPPORTED':text.includes('JEV_TAB_CHANGED')?'TAB_CHANGED':text.includes('JEV_FRAME_GONE')?'FRAME_GONE':text.includes('Extension')?'EXTENSION_CONNECTION_REQUIRED':'EXTENSION_OPERATION_FAILED';
+        throw fail(code,code==='EXTENSION_METADATA_UNSUPPORTED'?'官方扩展拒绝标签页身份读取；无需重新登录网站':'已有标签页操作失败；请检查连接授权和原现场');
       }
       const match=text.match(/### Result\s*\n([\s\S]*?)(?=\n### |$)/);
       if(!match)throw fail('EXTENSION_BACKEND_INCOMPATIBLE','连接后端未返回结构化操作结果');
-      try{const result=JSON.parse(match[1].trim());this.authorized=true;return result;}catch{throw fail('EXTENSION_BACKEND_INCOMPATIBLE','连接后端结果格式不兼容');}
+      try{const result=JSON.parse(match[1].trim());this.authorized=true;return publicBrowserMetadata(result,op);}catch{throw fail('EXTENSION_BACKEND_INCOMPATIBLE','连接后端结果格式不兼容');}
     });
   }
   async select(targetId){

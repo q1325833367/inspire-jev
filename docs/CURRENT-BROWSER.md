@@ -12,6 +12,8 @@
 
 可选连接 token 从官方扩展界面取得，通过隐藏输入保存；不能放入命令参数。留空时通过官方界面确认连接，不需要重新登录网站。
 
+官方扩展 0.4.0 中，token 只省去连接确认：新连接仍建立自己的标签页组，不会自动复用上一连接的业务标签页。已有标签页需加入当前连接的组；不刷新页面或重建档案。当前适配器尚未实现重启后自动附着上一次业务页面，不能把自动授权描述为自动恢复现场。
+
 ```sh
 inspire-jev config set browserMode
 inspire-jev config set extensionProfile
@@ -36,12 +38,15 @@ token 保存在私密凭据文件中；`config show` 只显示是否配置。已
 - 上游真实 stdio 服务已通过版本及工具契约检查。
 - 通过同一官方后端的受控 CDP 契约，验证原标签页读写、frame 身份、旧引用拒绝、取消和断开后页面保留。
 - 真实 Books to Scrape 页面完成读取及详情导航；该记录是开发验证，不是用户 Chrome 扩展验收。
-- 官方扩展、企业后台业务、三入口和速度对照尚待实际验收。
+- 官方扩展 0.4.0 已在既有已登录 Chrome 标签页上验证物理身份、分批观测和真实点击；搜索弹窗实际打开，断开后原页面与登录态保留。该记录属于连接层开发验证，不是企业业务或速度验收。
+- token 已验证省去连接确认；不代表自动附着原业务标签页。
+- 企业后台业务、三入口和速度对照尚待实际验收。
 - 当前扩展观测复用既有有界 DOM 观测函数；上游 AX 快照复用与简化任务接口尚未交付。
 - 标签页访问撤销、未知动作和来源不足均须原现场核对，不创建替代网页。frame CSS 形式的旧检查暂不支持此适配器，使用观测返回的 `frameId`。
+- 固定后端应用经过 SHA256 校验的进程内兼容补丁，处理扩展拒绝重复浏览器目标附着，以及旧标签页的根 frame 编号与浏览器目标编号不一致问题。补丁仅应用于该依赖副本；版本变化时拒绝应用。来源与改编范围见 `NOTICE`。
 
 ## English
 
 This development branch adds an internal, pinned Playwright MCP backend for the official Microsoft browser extension. Stable 1.0 does not include this capability. Install the official extension in the existing signed-in browser profile, select `extension` during setup, and enter the profile directory name. An optional extension token is entered through a hidden prompt and stored outside the repository.
 
-Use `connect`, `tabs`, and `attach` with an observed `targetId` and allowed origins. Attaching does not navigate or create a business tab. `detach` retains the user's page. Existing `open` continues to use the independent managed browser. Backend contracts and a public-site development flow have passed; the actual extension path, enterprise workflows and performance comparison remain unverified. No speed claim is made.
+Use `connect`, `tabs`, and `attach` with an observed `targetId` and allowed origins. Attaching does not navigate or create a business tab. `detach` retains the user's page. Existing `open` continues to use the independent managed browser. The actual extension path has passed identity, bounded observation, click and page-retention checks on an existing signed-in Chrome tab. Enterprise workflows, host coverage and performance comparison remain unverified. A token bypasses the connection dialog but does not automatically restore the previous connection's business tabs in extension 0.4.0. A fingerprint-guarded, process-local compatibility patch handles target metadata and root frame identities; its source and scope are documented in NOTICE. No speed claim is made.
