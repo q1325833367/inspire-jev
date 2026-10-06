@@ -1,0 +1,47 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtemp,readFile,writeFile,stat,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join,resolve} from 'node:path';
+import {spawnSync} from 'node:child_process';
+import {readCredentials,writeCredentials,publicCredentials} from '../src/credentials.mjs';
+import {userDataHome,processIdentity} from '../src/platform.mjs';
+import {acquire,inspectLock,recoverLock} from '../src/locks.mjs';
+
+test('新安装使用平台标准目录，并兼容两个 home 环境变量',()=>{
+  assert.equal(userDataHome({platform:'darwin',home:'/test',env:{}}),join('/test','Library','Application Support','InspireJev'));
+  assert.equal(userDataHome({platform:'linux',home:'/test',env:{XDG_DATA_HOME:'/data'}}),join('/data','inspire-jev'));
+  assert.equal(userDataHome({platform:'win32',home:'/test',env:{LOCALAPPDATA:'/appdata'}}),join('/appdata','InspireJev'));
+  assert.equal(userDataHome({env:{INSPIRE_JEV_HOME:'/new',JEV_AGENT_HOME:'/old'}}),'/new');
+  assert.equal(userDataHome({env:{JEV_AGENT_HOME:'/old'}}),'/old');
+});
+test('私密文件支持标准 env 引号，环境变量优先，文本模型可缺省',async()=>{
+  const dir=await mkdtemp(join(tmpdir(),'inspire-config-'));
+  try{const path=join(dir,'private.env');await writeFile(path,'TYPESAFE_API_KEY="file-credential"\nTYPESAFE_MODEL=jev-pinned\n');
+    const values=await readCredentials(path,{environment:{TYPESAFE_API_KEY:'environment-credential'}});
+    assert.equal(values.TYPESAFE_API_KEY,'environment-credential');assert.equal(values.TYPESAFE_MODEL,'jev-pinned');assert.equal(values.TEXT_MODEL_API_KEY,undefined);
+    assert.equal(publicCredentials(values).TYPESAFE_API_KEY,'已配置');assert.ok(!JSON.stringify(publicCredentials(values)).includes('environment-credential'));
+  }finally{await rm(dir,{recursive:true,force:true});}
+});
+test('凭据原子保存到私密目录；无效模型地址不会通过验证',async()=>{
+  const dir=await mkdtemp(join(tmpdir(),'inspire-credentials-'));
+  try{const path=await writeCredentials(dir,{TYPESAFE_API_KEY:'test-credential#=value',TEXT_MODEL:'custom-text'});
+    const values=await readCredentials(path,{environment:{}});assert.equal(values.TYPESAFE_API_KEY,'test-credential#=value');assert.equal(values.TEXT_MODEL,'custom-text');
+    if(process.platform!=='win32'){assert.equal((await stat(path)).mode&0o777,0o600);assert.equal((await stat(dir)).mode&0o777,0o700);}
+    await assert.rejects(readCredentials(undefined,{environment:{TYPESAFE_API_KEY:'test',TYPESAFE_BASE_URL:'https://secret:password@example.com'}}),/不含凭据/);
+  }finally{await rm(dir,{recursive:true,force:true});}
+});
+test('配置 CLI 可从 stdin 更新 key，输出与 config.json 不含值',async()=>{
+  const dir=await mkdtemp(join(tmpdir(),'inspire-cli-')),env={...process.env,INSPIRE_JEV_HOME:dir};
+  try{const cli=resolve('src/cli.mjs'),secret='private-fixture-credential';
+    const updated=spawnSync(process.execPath,[cli,'config','set','TYPESAFE_API_KEY','--stdin'],{env,input:secret,encoding:'utf8'});assert.equal(updated.status,0,updated.stderr);assert.ok(!updated.stdout.includes(secret));
+    const shown=spawnSync(process.execPath,[cli,'config','show'],{env,encoding:'utf8'});assert.equal(shown.status,0,shown.stderr);assert.ok(!shown.stdout.includes(secret));assert.equal(JSON.parse(shown.stdout).models.TYPESAFE_API_KEY,'已配置');
+    assert.ok(!(await readFile(join(dir,'config.json'),'utf8')).includes(secret));
+    const before=await readFile(join(dir,'config.json'),'utf8');const bad=spawnSync(process.execPath,[cli,'config','set','modelProxy','--stdin'],{env,input:'https://name:password@example.com',encoding:'utf8'});assert.equal(bad.status,1);assert.equal(await readFile(join(dir,'config.json'),'utf8'),before);
+  }finally{await rm(dir,{recursive:true,force:true});}
+});
+test('真实进程身份可核验；仍存活的锁禁止回收',async()=>{
+  const identity='portable-lock-'+process.pid+'-'+Date.now();assert.ok(await processIdentity(process.pid));
+  const release=await acquire(identity,'test');
+  try{assert.equal((await inspectLock(identity)).ownerAlive,true);await assert.rejects(recoverLock(identity,{inspected:true}),/仍存活/);}finally{await release();}
+});
