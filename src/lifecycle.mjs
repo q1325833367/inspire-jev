@@ -27,7 +27,8 @@ async function prepareRelease(root,pkg,config,{downloadBrowser,candidateId}){
   const release=join(parent,pkg.version),digest=await sourceDigest(root);
   if(await exists(release)){
     const info=await readFile(join(release,'release-info.json'),'utf8').then(JSON.parse).catch(()=>null);
-    if(!info?.complete||info.sourceHash!==digest)throw Object.assign(Error('该版本已有不同或不完整源码；保留旧目录，请使用新的版本号'),{code:'VERSION_CONFLICT'});
+    const matches=info?.sourceHash===digest||(pkg.version==='1.0.0-rc.8'&&info?.sourceHash===await sourceDigest(root,{portable:false}));
+    if(!info?.complete||!matches)throw Object.assign(Error('该版本已有不同或不完整源码；保留旧目录，请使用新的版本号'),{code:'VERSION_CONFLICT'});
     await access(join(release,'node_modules','playwright','package.json'));
     if(downloadBrowser)runCommand(process.execPath,[join(release,'node_modules','playwright','cli.js'),'install','chromium'],{env:npmEnv(config)});
     return release;

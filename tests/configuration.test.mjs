@@ -61,3 +61,13 @@ test('Pi 原生目录和对象形式包配置均保留本地来源语义',()=>{
  const path=join('/test','pi-agent','settings.json');assert.equal(localPiSource({source:'../packages/inspire',extensions:['selected.ts']},path),resolve('/test/packages/inspire'));assert.equal(localPiSource('npm:example',path),null);
  const previous=process.env.PI_CODING_AGENT_DIR;try{process.env.PI_CODING_AGENT_DIR=resolve('/test/pi-native');assert.equal(piAgentDir(),resolve('/test/pi-native'));}finally{if(previous===undefined)delete process.env.PI_CODING_AGENT_DIR;else process.env.PI_CODING_AGENT_DIR=previous;}
 });
+
+test('旧 RC.8 安装指纹可供回退使用，源码变化仍拒绝覆盖',async()=>{
+ const {mkdir}=await import('node:fs/promises'),{createHash}=await import('node:crypto'),{installEntries}=await import('../src/lifecycle.mjs');
+ const home=await mkdtemp(join(tmpdir(),'inspire-legacy-')),root=join(home,'releases','1.0.0-rc.8'),previous=process.env.INSPIRE_JEV_HOME;
+ try{process.env.INSPIRE_JEV_HOME=home;await mkdir(join(root,'src'),{recursive:true});await mkdir(join(root,'node_modules','playwright'),{recursive:true});
+  const files=[['package.json',JSON.stringify({name:'inspire-jev',version:'1.0.0-rc.8'})],[join('src','marker.mjs'),'export const marker=1;']];const legacy=createHash('sha256');for(const[path,value]of files){await writeFile(join(root,path),value);legacy.update(path+'\0');legacy.update(value);}
+  await writeFile(join(root,'node_modules','playwright','package.json'),'{}');await writeFile(join(root,'release-info.json'),JSON.stringify({complete:true,sourceHash:legacy.digest('hex')}));
+  const r=await installEntries({entrySet:[],root,downloadBrowser:false});assert.equal(r.version,'1.0.0-rc.8');await writeFile(join(root,'src','marker.mjs'),'export const marker=2;');await assert.rejects(installEntries({entrySet:[],root,downloadBrowser:false}),{code:'VERSION_CONFLICT'});
+ }finally{if(previous===undefined)delete process.env.INSPIRE_JEV_HOME;else process.env.INSPIRE_JEV_HOME=previous;await rm(home,{recursive:true,force:true});}
+});

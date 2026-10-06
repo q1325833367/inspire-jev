@@ -16,11 +16,11 @@ export async function createObserver(agent){
   const s=sessions.get(sessionId);if(!s||s.page.isClosed())return;
   const origin=new URL(s.page.url()).origin;if(!s.record.allowedOrigins.includes(origin))return;
   const snapshot=await s.page.evaluate(({caseId,expectedNameHash})=>{
-   const text=s=>document.querySelector(s)?.innerText?.replace(/\s+/g,' ').trim()||'',items=(s,n=40)=>Array.from(document.querySelectorAll(s)).slice(0,n).map(e=>({text:e.innerText.replace(/\s+/g,' ').trim().slice(0,5000),href:e.getAttribute('href')}));
+   const content=e=>{if(!e)return'';const clone=e.cloneNode(true);clone.querySelectorAll('script,style,noscript').forEach(node=>node.remove());return clone.textContent.replace(/\s+/g,' ').trim();},text=s=>content(document.querySelector(s)),items=(s,n=40)=>Array.from(document.querySelectorAll(s)).slice(0,n).map(e=>({text:content(e).slice(0,5000),href:e.getAttribute('href')}));
    const base={url:location.href,title:document.title};
    if(location.hostname==='en.wikipedia.org'){
     const heading=document.querySelector('#Death'),container=heading?.closest('.mw-heading')||heading;let p=container?.nextElementSibling;while(p&&p.tagName!=='P'&&!/^H[1-6]$/.test(p.tagName))p=p.nextElementSibling;
-    return{...base,heading:text('#firstHeading'),fields:items('.infobox tr',40).map(x=>x.text),section:text('#Death'),paragraph:p?.tagName==='P'?p.innerText.trim().slice(0,5000):null};
+    return{...base,heading:text('#firstHeading'),fields:items('.infobox tr',40).map(x=>x.text),section:text('#Death'),paragraph:p?.tagName==='P'?content(p).slice(0,5000):null};
    }
    if(location.hostname==='www.gutenberg.org')return{...base,heading:text('h1'),search:items('.booklink',3).map(x=>x.text),books:items('.booklink a.link',3),ranking:items('#books-last1 + ol li a',27),metadata:items('table.bibrec tr',40).map(x=>x.text),formats:items('#download a.read-online-button,#download a.featured-format-link,#download a.other-format-link',100),formatCount:document.querySelectorAll('#download a.read-online-button,#download a.featured-format-link,#download a.other-format-link').length};
    if(location.hostname==='github.com'){

@@ -5,13 +5,13 @@ import {fileURLToPath} from 'node:url';
 
 export const packageRoot=dirname(dirname(fileURLToPath(import.meta.url)));
 export const publicFiles=['package.json','npm-shrinkwrap.json','package-lock.json','src','integrations','scripts','skills','plugin.json','mcp.json','.mcp.json','README.md','README.en.md','docs','LICENSE','NOTICE','CONTRIBUTING.md','SECURITY.md','CHANGELOG.md'];
-export async function sourceDigest(root){
+export async function sourceDigest(root,{portable=true}={}){
   const hash=createHash('sha256');
   async function add(path){
     let rows;
     try{rows=await readdir(join(root,path),{withFileTypes:true});}
     catch(error){
-      if(error.code==='ENOTDIR'){hash.update(path.replaceAll('\\','/')+'\0');hash.update(await readFile(join(root,path)));return;}
+      if(error.code==='ENOTDIR'){hash.update((portable?path.replaceAll('\\','/'):path)+'\0');hash.update(await readFile(join(root,path)));return;}
       if(error.code==='ENOENT')return;
       throw error;
     }
