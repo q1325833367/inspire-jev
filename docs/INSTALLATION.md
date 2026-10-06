@@ -3,7 +3,7 @@
 需要 Node.js 24，以及 [Playwright 支持的系统](https://playwright.dev/docs/intro#system-requirements)。平台实测状态见 [兼容矩阵](COMPATIBILITY.md)。
 
 ```sh
-npm install --global https://github.com/q1325833367/inspire-jev/releases/download/v1.0.0-rc.6/inspire-jev-1.0.0-rc.6.tgz
+npm install --global https://github.com/q1325833367/inspire-jev/releases/download/v1.0.0-rc.7/inspire-jev-1.0.0-rc.7.tgz
 inspire-jev setup
 ```
 
@@ -41,8 +41,8 @@ MCP 使用宿主启动的 stdio 进程，stdout 只承载协议。宿主授权�
 ## 更新与回退
 
 ```sh
-inspire-jev upgrade --package https://github.com/q1325833367/inspire-jev/releases/download/v1.0.0-rc.6/inspire-jev-1.0.0-rc.6.tgz
-inspire-jev rollback --version 1.0.0-rc.6
+inspire-jev upgrade --package https://github.com/q1325833367/inspire-jev/releases/download/v1.0.0-rc.7/inspire-jev-1.0.0-rc.7.tgz
+inspire-jev rollback --version 1.0.0-rc.7
 inspire-jev version
 ```
 

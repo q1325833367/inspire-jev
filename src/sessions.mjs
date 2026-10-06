@@ -23,8 +23,14 @@ export class Sessions {
       await mkdir(profilePath,{recursive:true,mode:0o700});await chmod(profilePath,0o700);
       context=await chromium.launchPersistentContext(profilePath,{headless,chromiumSandbox:true,proxy:this.config.browserProxy?{server:this.config.browserProxy,bypass:'localhost,127.0.0.1,[::1]'}:undefined,viewport:{width:1280,height:900}});
       const page=context.pages()[0]||await context.newPage();
-      const instanceId=randomUUID(),tab={id:randomUUID(),playwright:page,url:async()=>page.url(),back:()=>page.goBack({waitUntil:'domcontentloaded',timeout:10000})};
-      const adapter=browserAdapter(tab,{driver:'playwright',browserId:`jev-${this.config.host}`,instanceId,sessionId:id,allowedOrigins:origins});
+      const navigationState=profile===previous?.profileId&&url===previous?.lastUrl?previous?.navigation:undefined;
+      const cdp=await context.newCDPSession(page);
+      const instanceId=randomUUID(),tab={id:randomUUID(),playwright:page,url:async()=>page.url(),back:async destination=>{
+        const native=await cdp.send('Page.getNavigationHistory');
+        if(native.entries[native.currentIndex-1]?.url===destination)return page.goBack({waitUntil:'domcontentloaded',timeout:10000});
+        return page.goto(destination,{waitUntil:'domcontentloaded',timeout:10000});
+      }};
+      const adapter=browserAdapter(tab,{driver:'playwright',browserId:`jev-${this.config.host}`,instanceId,sessionId:id,allowedOrigins:origins,navigationState});
       const record={id,profileId:profile,label,host:this.config.host,allowedOrigins:origins,status:'open',physicalIdentity:adapter.identity,lastUrl:page.url(),createdAt:previous?.createdAt||Date.now()};
       const session={context,page,adapter,record,release};this.opened.set(id,session);
       context.on('close',()=>this.finishClosed(id,session).catch(()=>{}));
@@ -45,10 +51,10 @@ export class Sessions {
   async inspect(id,options={}){
     const s=this.get(id),url=s.page?s.page.url():await s.adapter.observe().then(p=>p.url);
     if(s.record.allowedOrigins.length&&!s.record.allowedOrigins.includes(new URL(url).origin))return{status:'handoff',reason:'needs_origin',url};
-    const page=await s.adapter.observe(options);s.record.lastUrl=page.url;await this.store.write('sessions',id,s.record);return{session:this.info(id),page:s.adapter.publicView(page)};
+    const page=await s.adapter.observe(options);s.record.lastUrl=page.url;s.record.navigation=s.adapter.navigationState();await this.store.write('sessions',id,s.record);return{session:this.info(id),page:s.adapter.publicView(page)};
   }
   async list(){const rows=await this.store.list('sessions');return rows.map(r=>({...r,status:this.opened.has(r.id)?'open':'closed'}));}
-  finishClosed(id,s){return s.closedPromise??=(async()=>{if(this.opened.get(id)===s)this.opened.delete(id);s.record.status='closed';s.record.closedAt=Date.now();await s.release();await this.store.write('sessions',id,s.record);})();}
+  finishClosed(id,s){return s.closedPromise??=(async()=>{if(this.opened.get(id)===s)this.opened.delete(id);s.record.navigation=s.adapter.navigationState();s.record.status='closed';s.record.closedAt=Date.now();await s.release();await this.store.write('sessions',id,s.record);})();}
   async close(id){const s=this.get(id);await s.context?.close();await this.finishClosed(id,s);return{closed:true,profileRetained:true};}
   async closeAll(){for(const id of [...this.opened.keys()])await this.close(id);}
 }

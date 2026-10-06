@@ -2,9 +2,9 @@ import {createHash,randomUUID} from 'node:crypto';
 import {capturePage,probeTarget,checkPage,extractPage} from './snapshot.mjs';
 import {traceStep} from './trace.mjs';
 
-export function browserAdapter(tab,{browserId='iab',driver='desktop',instanceId='desktop',sessionId,allowedOrigins,trace,onAction,checkExtra}={}) {
+export function browserAdapter(tab,{browserId='iab',driver='desktop',instanceId='desktop',sessionId,allowedOrigins,trace,onAction,checkExtra,navigationState}={}) {
   const span=(name,data,work,summary)=>traceStep(api.trace,name,data,work,summary);
-  const history=[];let historyIndex=-1,backPending=false,nextCursor=null,lastPage,registry=new Map(),siteTools;
+  const history=[...(navigationState?.urls||[])];let historyIndex=navigationState?.index??-1,backPending=false,nextCursor=null,lastPage,registry=new Map(),siteTools;
   const owned=driver==='playwright';
   const prepared=new Map();
   const frameAt = index => owned ? tab.playwright.frames()[index||0] : tab.playwright;
@@ -15,6 +15,7 @@ export function browserAdapter(tab,{browserId='iab',driver='desktop',instanceId=
   const api={
     trace,sessionId,allowedOrigins,
     identity:`${driver}:${browserId}:${instanceId}:tab:${tab.id}`,
+    navigationState(){return{urls:history.slice(),index:historyIndex};},
     async capabilities(){return{driver,browserId,implemented:['click','fill','select','check','press','scroll','wait','observe',...(typeof tab.back==='function'?['back']:[])],frames:owned?'implemented':'handoff',shadowDOM:'handoff',canvas:'handoff',sensitiveInput:'host_only',siteTools:null};},
     async discoverSiteTools(){
       if(!tab.capabilities)return null;
@@ -38,7 +39,7 @@ export function browserAdapter(tab,{browserId='iab',driver='desktop',instanceId=
       else if(owned&&frameIndex+1<frames.length)page.cursor={frameIndex:frameIndex+1};
       if(page.cursor&&!page.actions.some(a=>a.kind==='observe'))page.actions.push({id:'observe_more',kind:'observe',label:'继续发现下一批候选'});
       page.coverage.truncated=!!page.cursor;
-      if(outerUrl!==history[historyIndex]){if(backPending&&outerUrl===history[historyIndex-1])historyIndex--;else{history.splice(historyIndex+1);history.push(outerUrl);historyIndex++;}backPending=false;}
+      if(outerUrl!==history[historyIndex]){if(backPending&&outerUrl===history[historyIndex-1])historyIndex--;else{history.splice(historyIndex+1);history.push(outerUrl);historyIndex++;if(history.length>201){history.shift();historyIndex--;}}backPending=false;}
       if(historyIndex>0&&typeof tab.back==='function')page.actions.push({id:'host_back',kind:'back',role:'browser',label:'返回浏览器上一页',source:'host',href:history[historyIndex-1]});
       const generation=randomUUID();registry=new Map();
       for(const a of page.actions){a.ref=`${generation}:${a.id}`;registry.set(a.ref,a);}
@@ -47,7 +48,7 @@ export function browserAdapter(tab,{browserId='iab',driver='desktop',instanceId=
     },
     async expand(page){if(!page.cursor)throw Error('没有更多观测范围');nextCursor=page.cursor;},
     async validate(action){
-      if(action.kind==='back')return{ok:action.href===history[historyIndex-1]};
+      if(action.kind==='back')return{ok:action.href===history[historyIndex-1]&&await url()===history[historyIndex]};
       if(action.kind==='observe')return{ok:!!lastPage?.cursor};
       if(owned&&action.selector){const handle=await findElement(frameAt(action.frameIndex),action.selector);if(!handle)return{ok:false,reason:'target_missing'};let guard=await span('browser.target.validate',{kind:action.kind,target_ref:api.trace?.ref(action.selector)},()=>handle.evaluate(probeTarget,action),p=>({ok:p.ok,reason:p.reason}));
         if(guard.ok&&action.kind==='click'){try{await span('browser.click.readiness',{target_ref:api.trace?.ref(action.selector)},()=>handle.click({trial:true,timeout:500}));guard=await handle.evaluate(probeTarget,action);}catch{guard={ok:false,reason:'target_not_ready'};}}
@@ -87,7 +88,7 @@ export function browserAdapter(tab,{browserId='iab',driver='desktop',instanceId=
       let issued=false;const invoke=(operation,work)=>span(operation,meta,()=>{if(signal?.aborted)throw Object.assign(Error('执行已取消'),{name:'AbortError',notIssued:!issued});issued=true;return work();});
       if(action.kind==='observe'){await api.expand(lastPage);return;}
       if(action.kind==='wait'){await span('browser.wait',{},()=>new Promise(resolve=>setTimeout(resolve,150)));return;}
-      if(action.kind==='back'){backPending=true;await invoke('browser.back',()=>tab.back());}
+      if(action.kind==='back'){backPending=true;await invoke('browser.back',()=>tab.back(action.href));}
       else if(action.kind==='scroll'){
         if(!owned)await invoke('browser.scroll',()=>tab.scroll([action.x,action.y],action.direction,1));
         else{if(action.region)await invoke('browser.hover',()=>locator({...action,selector:action.region}).hover());await invoke('browser.wheel',()=>tab.playwright.mouse.wheel(0,action.direction==='down'?550:-550));}

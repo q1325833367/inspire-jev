@@ -6,7 +6,7 @@
 
 A Jev-powered execution toolkit, starting with browser automation.
 
-[![Version: 1.0.0-rc.6](https://img.shields.io/badge/version-1.0.0--rc.6-orange)](https://github.com/q1325833367/inspire-jev/releases)
+[![Version: 1.0.0-rc.7](https://img.shields.io/badge/version-1.0.0--rc.6-orange)](https://github.com/q1325833367/inspire-jev/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 InspireJev lets a main agent use Jev tools first for continuous browser execution, including search, filtering, data collection, and form filling. The main agent retains the full objective and handles planning, authorization, verification, and takeover. Jev selects actions from candidates observed on the current page.
@@ -29,7 +29,7 @@ Runtime dependencies: **Node.js 24+**, Playwright 1.63, MCP SDK, Undici, Zod, an
 Install Node.js 24 or later, then install the RC release package and Chromium:
 
 ```sh
-npm install --global https://github.com/q1325833367/inspire-jev/releases/download/v1.0.0-rc.6/inspire-jev-1.0.0-rc.6.tgz
+npm install --global https://github.com/q1325833367/inspire-jev/releases/download/v1.0.0-rc.7/inspire-jev-1.0.0-rc.7.tgz
 npx playwright@1.63.0 install chromium
 inspire-jev setup
 inspire-jev install --entry gpt

@@ -1,6 +1,9 @@
 import {z} from 'zod';
 
-const dataRef=z.object({subgoal:z.string(),field:z.string().optional(),index:z.number().int().min(0).optional(),source:z.literal('url').optional(),resolveUrl:z.boolean().optional()});
+const dataRef=z.union([
+  z.object({subgoal:z.string().min(1),field:z.string().min(1),index:z.number().int().min(0).optional(),resolveUrl:z.boolean().optional()}).strict(),
+  z.object({subgoal:z.string().min(1),source:z.literal('url'),resolveUrl:z.boolean().optional()}).strict()
+]).describe('引用采集字段时用 field，可加 index 和 resolveUrl；引用阶段页面地址时用 source:"url"。field 与 source 互斥，页面地址不能加 index。');
 const id=z.string().min(1).max(100).regex(/^[A-Za-z0-9_-]+$/).describe('仅字母、数字、下划线和连字符，最多100字符；不要用冒号、斜杠或空格');
 const check=z.object({kind:z.enum(['url','title','text','exists','field','checked','selected','elementText','attribute','count','evidence']),equalsFrom:dataRef.optional(),includesFrom:dataRef.optional(),selector:z.string().optional(),label:z.string().optional(),labelIncludes:z.string().optional(),equals:z.union([z.string(),z.boolean()]).optional(),includes:z.string().optional(),excludes:z.string().optional(),notEmpty:z.boolean().optional(),maxLength:z.number().int().positive().optional(),minCount:z.number().int().min(0).optional(),maxCount:z.number().int().min(0).optional(),attribute:z.string().optional(),frame:z.string().optional(),subgoal:z.string().optional(),sensitive:z.boolean().optional()});
 const stageCheck=check.extend({kind:z.enum(check.shape.kind.options.filter(kind=>kind!=='evidence'))});

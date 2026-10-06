@@ -10,7 +10,15 @@ import {secureDirectory} from './platform.mjs';
 const writers = new Map();
 const copy = value => structuredClone(value);
 const storage = join(defaultHome(), 'checkpoints-v2');
-export function resolveChecks(checks,data){return checks.map(c=>{const out={...c};for(const [refKey,key] of [['equalsFrom','equals'],['includesFrom','includes']])if(c[refKey]){const ref=c[refKey],saved=data[ref.subgoal];let value=ref.source==='url'?saved?.url:saved?.data?.[ref.field];if(ref.index!==undefined)value=value?.[ref.index];if(value===undefined||value===null)throw Error('阶段数据缺失，不能核验条件');out[key]=ref.resolveUrl?new URL(String(value),saved.url).href:String(value);delete out[refKey];}return out;});}
+function validateReference(ref) {
+  const pageUrl=ref?.source==='url';
+  if (!ref || typeof ref.subgoal!=='string' || !ref.subgoal.trim() ||
+      (pageUrl ? ref.field!==undefined || ref.index!==undefined : ref.source!==undefined || typeof ref.field!=='string' || !ref.field.trim()) ||
+      (ref.index!==undefined && (!Number.isInteger(ref.index) || ref.index<0))) {
+    throw Object.assign(new Error('阶段数据引用无效：采集字段使用 field（可加 index）；页面地址使用 source:"url"。field 与 source 不能混用，页面地址不能加 index。'),{code:'INVALID_TASK_REFERENCE'});
+  }
+}
+export function resolveChecks(checks,data){return checks.map(c=>{const out={...c};for(const [refKey,key] of [['equalsFrom','equals'],['includesFrom','includes']])if(c[refKey]){const ref=c[refKey];validateReference(ref);const saved=data[ref.subgoal];let value=ref.source==='url'?saved?.url:saved?.data?.[ref.field];if(ref.index!==undefined)value=value?.[ref.index];if(value===undefined||value===null)throw Error('阶段数据缺失，不能核验条件');out[key]=ref.resolveUrl?new URL(String(value),saved.url).href:String(value);delete out[refKey];}return out;});}
 export async function loadCheckpoint(runId) {
   if (!/^[a-f0-9-]{36}$/.test(runId)) throw new Error('无效任务编号');
   return JSON.parse(await readFile(join(storage, `${runId}.json`), 'utf8'));
@@ -20,6 +28,7 @@ export function validateTask(task) {
       !Array.isArray(task.allowedOrigins) || !task.allowedOrigins.length ||
       !Array.isArray(task.completionChecks) || !task.completionChecks.length) throw new Error('任务缺少目标、子目标、来源或完成条件');
   const ids = new Set();
+  for(const c of [...task.subgoals.flatMap(s=>s.checks||[]),...task.completionChecks])for(const key of ['equalsFrom','includesFrom'])if(c[key]!==undefined)validateReference(c[key]);
   for (const step of task.subgoals) {
     if (!step.id || ids.has(step.id) || !step.goal?.trim() || !step.checks?.length) throw new Error('子目标需要唯一编号与独立检查');
     if(step.checks.some(c=>c.kind==='evidence'))throw new Error('阶段 checks 只检查实际页面状态；evidence 只能放在 task.completionChecks，不能作为阶段自身的前置条件');
@@ -131,6 +140,8 @@ async function drive(state, adapter, services, { signal, onProgress, saveCheckpo
         await persist(); if(onProgress)await span('runner.progress',{},()=>onProgress({ completed: step.id, remaining: task.subgoals.length - state.index })); continue;
       }
       if (step.hostOnly || step.sensitive || step.checks.some(c=>c.sensitive)) return handoff('host_action_required', { subgoal:step.id });
+      const failed=check.details?.filter(d=>!d.ok);
+      if(failed?.length && failed.every(d=>['elementText','attribute','field','checked','selected'].includes(d.kind)&&d.count>1)) return handoff('ambiguous_check', {subgoal:step.id,evidence:check});
       page = await span('runner.observe.decision',{},()=>adapter.observe({frame:step.checks.find(c=>c.frame)?.frame}));state.lastUrl=page.url;
       if(page.coverage?.loginForms&&/(?:^|\/)(?:login|signin|sign-in)(?:\/|$)/i.test(new URL(page.url).pathname))return handoff('manual_login_required',{url:page.url});
       if (!task.allowedOrigins.includes(new URL(page.url).origin)) return handoff('needs_origin', { url: page.url });
