@@ -4,6 +4,7 @@ import {join} from 'node:path';
 import {runCommand} from '../src/platform.mjs';
 
 const pkg=JSON.parse(await readFile('package.json','utf8'));
+const locked=JSON.parse(await readFile('npm-shrinkwrap.json','utf8'));if(locked.version!==pkg.version||locked.packages[''].version!==pkg.version||Object.entries(pkg.dependencies).some(([name,version])=>locked.packages[''].dependencies[name]!==version||locked.packages['node_modules/'+name]?.version!==version))throw Error('包版本或依赖与发布锁文件不一致');
 const roundIndex=process.argv.indexOf('--round'),round=roundIndex<0?undefined:process.argv[roundIndex+1];if(round&&!/^1\.0-[A-Za-z0-9_-]+$/.test(round))throw Error('候选轮次无效');const destination=round?join('dist','candidates',round):'dist';
 runCommand(process.execPath,['scripts/scan-secrets.mjs','--history']);
 await mkdir(destination,{recursive:true});
