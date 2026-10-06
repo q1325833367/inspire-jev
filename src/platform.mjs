@@ -35,7 +35,7 @@ export async function secureFile(path){
 async function setPrivateACL(path,directory){
   const sid=await windowsUserSID(),literal=String(path).replaceAll("'","''");
   const inheritance=directory?'([System.Security.AccessControl.InheritanceFlags]::ContainerInherit -bor [System.Security.AccessControl.InheritanceFlags]::ObjectInherit)':'[System.Security.AccessControl.InheritanceFlags]::None';
-  const command=`$ErrorActionPreference='Stop'; $path='${literal}'; $sid=[System.Security.Principal.SecurityIdentifier]::new('${sid}'); $acl=[System.Security.AccessControl.${directory?'Directory':'File'}Security]::new(); $acl.SetAccessRuleProtection($true,$false); $rule=[System.Security.AccessControl.FileSystemAccessRule]::new($sid,[System.Security.AccessControl.FileSystemRights]::FullControl,${inheritance},[System.Security.AccessControl.PropagationFlags]::None,[System.Security.AccessControl.AccessControlType]::Allow); $acl.AddAccessRule($rule); Set-Acl -LiteralPath $path -AclObject $acl; $actual=Get-Acl -LiteralPath $path; if (-not $actual.AreAccessRulesProtected) { throw 'DACL is not protected' }; foreach ($r in $actual.GetAccessRules($true,$true,[System.Security.Principal.SecurityIdentifier])) { if ($r.AccessControlType -eq 'Allow' -and $r.IdentityReference.Value -ne $sid.Value) { throw 'Unexpected access rule' } }`;
+  const command=`$ErrorActionPreference='Stop'; $path='${literal}'; $sid=[System.Security.Principal.SecurityIdentifier]::new('${sid}'); $acl=[System.Security.AccessControl.${directory?'Directory':'File'}Security]::new(); $acl.SetAccessRuleProtection($true,$false); $rule=[System.Security.AccessControl.FileSystemAccessRule]::new($sid,[System.Security.AccessControl.FileSystemRights]::FullControl,${inheritance},[System.Security.AccessControl.PropagationFlags]::None,[System.Security.AccessControl.AccessControlType]::Allow); $acl.AddAccessRule($rule); [System.IO.${directory?'Directory':'File'}]::SetAccessControl($path,$acl); $actual=[System.IO.${directory?'Directory':'File'}]::GetAccessControl($path); if (-not $actual.AreAccessRulesProtected) { throw 'DACL is not protected' }; foreach ($r in $actual.GetAccessRules($true,$true,[System.Security.Principal.SecurityIdentifier])) { if ($r.AccessControlType -eq 'Allow' -and $r.IdentityReference.Value -ne $sid.Value) { throw 'Unexpected access rule' } }`;
   await exec('powershell.exe',['-NoLogo','-NoProfile','-NonInteractive','-EncodedCommand',Buffer.from(command,'utf16le').toString('base64')],{windowsHide:true});
 }
 export async function processIdentity(pid){
@@ -49,7 +49,7 @@ export async function processIdentity(pid){
     }catch(e){if(e.code==='ENOENT')return null;throw Object.assign(Error('无法核对进程身份'),{code:'PROCESS_IDENTITY_UNAVAILABLE'});}
   }
   if(process.platform==='win32'){
-    const command=`try { $p=Get-Process -Id ${pid} -ErrorAction Stop; $p.StartTime.ToUniversalTime().Ticks } catch { if ($_.FullyQualifiedErrorId -like 'NoProcessFoundForGivenId*') { exit 3 }; exit 4 }`;
+    const command=`try { $p=[System.Diagnostics.Process]::GetProcessById(${pid}); $p.StartTime.ToUniversalTime().Ticks } catch [System.ArgumentException] { exit 3 } catch { exit 4 }`;
     try{const {stdout}=await exec('powershell.exe',['-NoLogo','-NoProfile','-NonInteractive','-Command',command],{windowsHide:true});const value=stdout.trim();if(!/^\d+$/.test(value))throw Error('进程身份格式无效');return `windows:${value}`;}
     catch(e){if(e.code===3)return null;throw Object.assign(Error('无法核对 Windows 进程身份'),{code:'PROCESS_IDENTITY_UNAVAILABLE'});}
   }
