@@ -1,7 +1,7 @@
 import {hash} from './acceptance-evidence.mjs';
 const gt='https://www.gutenberg.org',wiki='https://en.wikipedia.org',gh='https://github.com';
 const absolute=(href,url)=>{try{return new URL(href,url).href;}catch{return null;}};
-const fullMIT=text=>typeof text==='string'&&['MIT License','Permission is hereby granted','THE SOFTWARE IS PROVIDED','OTHER DEALINGS IN THE SOFTWARE.'].every(part=>text.includes(part));
+const fullMIT=text=>typeof text==='string'&&['MIT License','Permission is hereby granted','THE SOFTWARE IS PROVIDED','OTHER DEALINGS IN THE SOFTWARE.'].every(part=>text.replace(/\s+/g,'').includes(part.replace(/\s+/g,'')));
 function overviewLicense(events,snapshots,repo){
  return events.some(e=>e.type==='tool_end'&&e.collection&&Object.values(e.collection).concat(e.collection).some(c=>{
   if(!c?.url||!c.data)return false;const url=new URL(c.url);
