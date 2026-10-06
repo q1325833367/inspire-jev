@@ -30,7 +30,11 @@
     "README.en.md",
     "docs",
     "LICENSE",
-    "NOTICE"
+    "NOTICE",
+    "CONTRIBUTING.md",
+    "SECURITY.md",
+    "CHANGELOG.md",
+    "npm-shrinkwrap.json"
   ],
   "scripts": {
     "test": "node --test",

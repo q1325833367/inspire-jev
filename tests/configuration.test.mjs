@@ -7,6 +7,7 @@ import {spawnSync} from 'node:child_process';
 import {readCredentials,writeCredentials,publicCredentials} from '../src/credentials.mjs';
 import {userDataHome,processIdentity} from '../src/platform.mjs';
 import {acquire,inspectLock,recoverLock} from '../src/locks.mjs';
+import {updatedInstall,localPiSource,piAgentDir} from '../src/lifecycle.mjs';
 
 test('新安装使用平台标准目录，并兼容两个 home 环境变量',()=>{
   assert.equal(userDataHome({platform:'darwin',home:'/test',env:{}}),join('/test','Library','Application Support','InspireJev'));
@@ -44,4 +45,19 @@ test('真实进程身份可核验；仍存活的锁禁止回收',async()=>{
   const identity='portable-lock-'+process.pid+'-'+Date.now();assert.ok(await processIdentity(process.pid));
   const release=await acquire(identity,'test');
   try{assert.equal((await inspectLock(identity)).ownerAlive,true);await assert.rejects(recoverLock(identity,{inspected:true}),/仍存活/);}finally{await release();}
+});
+test('凭据中的反斜线、引号与注释字符可以无损保存',async()=>{
+  const dir=await mkdtemp(join(tmpdir(),'inspire-roundtrip-'));
+  try{for(const value of ['value\\part','value"part',"value'part#tag",'both\'"#value']){const path=await writeCredentials(dir,{TYPESAFE_API_KEY:value});assert.equal((await readCredentials(path,{environment:{}})).TYPESAFE_API_KEY,value);}}
+  finally{await rm(dir,{recursive:true,force:true});}
+});
+test('部分安装只更新成功入口，完全失败保留原版本和路径',()=>{
+ const old={version:'1.0.0-rc.3',release:'/releases/old',entries:['gpt','pi']};
+ const partial=updatedInstall(old,{version:'1.0.0-rc.4',release:'/releases/new',done:['gpt']});
+ assert.equal(partial.entryReleases.gpt.release,'/releases/new');assert.equal(partial.entryReleases.pi.release,'/releases/old');assert.deepEqual(partial.entries,['gpt','pi']);
+ const failed=updatedInstall(old,{version:'1.0.0-rc.4',release:'/releases/new',done:[]});assert.equal(failed.release,old.release);assert.equal(failed.version,old.version);assert.deepEqual(failed.entries,old.entries);
+});
+test('Pi 原生目录和对象形式包配置均保留本地来源语义',()=>{
+ const path=join('/test','pi-agent','settings.json');assert.equal(localPiSource({source:'../packages/inspire',extensions:['selected.ts']},path),resolve('/test/packages/inspire'));assert.equal(localPiSource('npm:example',path),null);
+ const previous=process.env.PI_CODING_AGENT_DIR;try{process.env.PI_CODING_AGENT_DIR=resolve('/test/pi-native');assert.equal(piAgentDir(),resolve('/test/pi-native'));}finally{if(previous===undefined)delete process.env.PI_CODING_AGENT_DIR;else process.env.PI_CODING_AGENT_DIR=previous;}
 });

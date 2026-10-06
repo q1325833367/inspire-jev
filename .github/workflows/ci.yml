@@ -1,0 +1,61 @@
+name: 跨平台验证
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  platform:
+    name: ${{ matrix.platform }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {os: macos-15, platform: macOS-ARM64}
+          - {os: macos-15-intel, platform: macOS-x64}
+          - {os: ubuntu-24.04, platform: Linux-x64}
+          - {os: ubuntu-24.04-arm, platform: Linux-ARM64}
+          - {os: windows-2025, platform: Windows-Server-x64}
+          - {os: windows-11-arm, platform: Windows-11-ARM64}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+      - run: npm ci --ignore-scripts
+      - run: npm run check
+      - run: npm run check:secrets -- --history
+      - run: npx playwright install --with-deps chromium
+      - run: npm test
+      - run: node scripts/platform-smoke.mjs
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: platform-${{ matrix.platform }}
+          path: artifacts/platform-smoke.json
+          if-no-files-found: ignore
+          retention-days: 14
+  package:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+      - run: npm ci --ignore-scripts
+      - run: npm run package
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-package
+          path: dist/
+          retention-days: 14

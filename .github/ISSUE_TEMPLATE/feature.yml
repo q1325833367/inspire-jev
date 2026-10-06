@@ -1,0 +1,14 @@
+name: 功能建议
+description: 分享场景、执行器思路或协作提议
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 希望解决的场景
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 思路与验证方法
+      description: 请说明预期收益、目标宿主或平台，以及可复现验证方式

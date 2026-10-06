@@ -1,5 +1,5 @@
 import {mkdir,chmod,readFile,access} from 'node:fs/promises';
-import {homedir,userInfo,platform as osPlatform} from 'node:os';
+import {homedir,platform as osPlatform} from 'node:os';
 import {join,delimiter,extname} from 'node:path';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
@@ -15,24 +15,28 @@ export function userDataHome({platform=osPlatform(),env=process.env,home=homedir
 export async function secureDirectory(path){
   await mkdir(path,{recursive:true,mode:0o700});
   if(process.platform!=='win32'){await chmod(path,0o700);return;}
-  const sid=await windowsUserSID();
-  try{await exec('icacls.exe',[path,'/inheritance:r','/grant:r',`*${sid}:(OI)(CI)F`],{windowsHide:true});}
+  try{await setPrivateACL(path,true);}
   catch{throw Object.assign(Error('无法设置私密目录的 Windows ACL'),{code:'PRIVATE_PERMISSIONS_ERROR'});}
 }
 let sidPromise;
 async function windowsUserSID(){
   return sidPromise??=(async()=>{
     const {stdout}=await exec('whoami.exe',['/user','/fo','csv','/nh'],{windowsHide:true});
-    const sid=stdout.match(/S-1-5-[0-9-]+/)?.[0];
+    const sid=stdout.match(/S-1-\d+(?:-\d+)+/)?.[0];
     if(!sid)throw Object.assign(Error('无法读取当前 Windows 用户身份'),{code:'PRIVATE_PERMISSIONS_ERROR'});
     return sid;
   })();
 }
 export async function secureFile(path){
   if(process.platform!=='win32'){await chmod(path,0o600);return;}
-  const sid=await windowsUserSID();
-  try{await exec('icacls.exe',[path,'/inheritance:r','/grant:r',`*${sid}:F`],{windowsHide:true});}
+  try{await setPrivateACL(path,false);}
   catch{throw Object.assign(Error('无法设置凭据文件的 Windows ACL'),{code:'PRIVATE_PERMISSIONS_ERROR'});}
+}
+async function setPrivateACL(path,directory){
+  const sid=await windowsUserSID(),literal=String(path).replaceAll("'","''");
+  const inheritance=directory?'([System.Security.AccessControl.InheritanceFlags]::ContainerInherit -bor [System.Security.AccessControl.InheritanceFlags]::ObjectInherit)':'[System.Security.AccessControl.InheritanceFlags]::None';
+  const command=`$ErrorActionPreference='Stop'; $path='${literal}'; $sid=[System.Security.Principal.SecurityIdentifier]::new('${sid}'); $acl=[System.Security.AccessControl.${directory?'Directory':'File'}Security]::new(); $acl.SetAccessRuleProtection($true,$false); $rule=[System.Security.AccessControl.FileSystemAccessRule]::new($sid,[System.Security.AccessControl.FileSystemRights]::FullControl,${inheritance},[System.Security.AccessControl.PropagationFlags]::None,[System.Security.AccessControl.AccessControlType]::Allow); $acl.AddAccessRule($rule); Set-Acl -LiteralPath $path -AclObject $acl; $actual=Get-Acl -LiteralPath $path; if (-not $actual.AreAccessRulesProtected) { throw 'DACL is not protected' }; foreach ($r in $actual.GetAccessRules($true,$true,[System.Security.Principal.SecurityIdentifier])) { if ($r.AccessControlType -eq 'Allow' -and $r.IdentityReference.Value -ne $sid.Value) { throw 'Unexpected access rule' } }`;
+  await exec('powershell.exe',['-NoLogo','-NoProfile','-NonInteractive','-EncodedCommand',Buffer.from(command,'utf16le').toString('base64')],{windowsHide:true});
 }
 export async function processIdentity(pid){
   if(!Number.isSafeInteger(pid)||pid<1)throw Error('无效进程编号');

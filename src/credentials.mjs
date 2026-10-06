@@ -18,9 +18,17 @@ export async function readCredentials(envFile,{environment=process.env,requireKe
 export async function writeCredentials(home,values){
   await secureDirectory(home);
   const path=join(home,'credentials.env'),temporary=`${path}.${randomUUID()}.tmp`;
-  const text=providerKeys.filter(k=>values[k]!==undefined).map(k=>`${k}=${JSON.stringify(String(values[k]))}`).join('\n')+'\n';
+  const text=providerKeys.filter(k=>values[k]!==undefined).map(k=>`${k}=${quoteEnv(String(values[k]))}`).join('\n')+'\n';
   try{await writeFile(temporary,text,{mode:0o600});await secureFile(temporary);await rename(temporary,path);await secureFile(path);}
   finally{await rm(temporary,{force:true});}
   return path;
+}
+function quoteEnv(value){
+  if(/[\r\n]/.test(value))throw Error('模型配置不能含换行');
+  for(const quote of ["'",'"','`','']){
+    const candidate=quote+value+quote;
+    if(parseEnv('VALUE='+candidate).VALUE===value)return candidate;
+  }
+  throw Error('配置值无法无损保存为 env 格式');
 }
 export function publicCredentials(values){return Object.fromEntries(providerKeys.map(key=>[key,key.endsWith('_API_KEY')?(values[key]?'已配置':'未配置'):(values[key]||'')]));}

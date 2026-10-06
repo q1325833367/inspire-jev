@@ -1,0 +1,23 @@
+name: 问题报告
+description: 提供可复现的执行、安装或宿主兼容问题
+body:
+  - type: textarea
+    id: environment
+    attributes:
+      label: 环境
+      description: 包版本、操作系统/架构、入口和宿主版本
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: 复现步骤与预期行为
+      description: 请勿包含密钥、个人页面或登录档案
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 实际行为与脱敏证据
+    validations:
+      required: true
