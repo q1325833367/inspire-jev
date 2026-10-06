@@ -1,0 +1,71 @@
+{
+  "name": "inspire-jev",
+  "version": "1.0.0-rc.4",
+  "description": "A Jev-powered execution toolkit, starting with browser automation.",
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "bin": {
+    "inspire-jev": "./src/cli.mjs",
+    "jev-agent": "./src/cli.mjs"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/api.d.ts",
+      "import": "./src/index.mjs"
+    },
+    "./desktop": "./src/desktop.mjs"
+  },
+  "files": [
+    "src",
+    "integrations",
+    "scripts/install.mjs",
+    "scripts/codex-rpc.mjs",
+    "skills",
+    "plugin.json",
+    "mcp.json",
+    ".mcp.json",
+    "README.md",
+    "README.en.md",
+    "docs",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "check": "node scripts/check.mjs",
+    "doctor": "node src/cli.mjs doctor",
+    "mcp": "node src/cli.mjs mcp",
+    "acceptance": "node scripts/acceptance.mjs",
+    "check:secrets": "node scripts/scan-secrets.mjs",
+    "test:public": "node scripts/public-smoke.mjs",
+    "package": "node scripts/package.mjs"
+  },
+  "pi": {
+    "extensions": [
+      "./integrations/pi/index.ts"
+    ],
+    "skills": [
+      "./skills"
+    ]
+  },
+  "dependencies": {
+    "@modelcontextprotocol/client": "2.3.0",
+    "@modelcontextprotocol/server": "2.2.0",
+    "cross-spawn": "7.0.6",
+    "playwright": "1.63.0",
+    "undici": "8.9.0",
+    "zod": "4.6.5"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/q1325833367/inspire-jev.git"
+  },
+  "homepage": "https://github.com/q1325833367/inspire-jev#readme",
+  "bugs": {
+    "url": "https://github.com/q1325833367/inspire-jev/issues"
+  },
+  "author": "q1325833367 <1325833367@qq.com>"
+}

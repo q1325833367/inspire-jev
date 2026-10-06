@@ -1,0 +1,20 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "inspire-jev",
+  "version": "1.0.0-rc.4",
+  "description": "基于 Jev 的浏览器执行工具，支持连续执行、证据核验、同一现场接管与恢复。",
+  "author": {
+    "name": "q1325833367",
+    "email": "1325833367@qq.com"
+  },
+  "license": "MIT",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "InspireJev",
+        "shortDescription": "快速网页交互与原现场接管"
+      },
+      "mcpServers": "./.mcp.json"
+    }
+  }
+}

@@ -1,0 +1,13 @@
+node_modules/
+.state/
+artifacts/
+dist/
+*.tgz
+.env
+.env.*
+!.env.example
+local-config.json
+*.log
+*.pem
+*.key
+.DS_Store
