@@ -6,12 +6,12 @@
 
 A Jev-powered execution toolkit, starting with browser automation.
 
-[![版本：1.0.0-rc.8](https://img.shields.io/badge/version-1.0.0--rc.8-orange)](https://github.com/q1325833367/inspire-jev/releases/tag/v1.0.0-rc.8)
+[![版本：1.0.0](https://img.shields.io/badge/version-1.0.0-blue)](https://github.com/q1325833367/inspire-jev/releases/tag/v1.0.0)
 [![许可证：MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 InspireJev 让主 Agent 优先通过 Jev 工具连续执行网页交互，适用于搜索筛选、资料采集和表单填写。主 Agent 保留完整目标，负责规划、授权、结果核验与必要接管；Jev 从当前页面实际观测到的候选中选择动作。
 
-当前版本为 **RC**：六个平台的核心 CI 回归及真实网页适配器流程已通过，macOS 本地 61 项回归已通过。Windows 11 ARM64 实机已验证 Pi、MCP、51 次真实网站操作及重启续跑；54 次正式端到端验收与速度对照尚未完成。详细证据与门槛见[兼容矩阵](docs/COMPATIBILITY.md)和[验收说明](docs/ACCEPTANCE.md)。
+1.0 首发范围为无需登录的公开网站执行。三个入口的完整业务、三系统运行与安装生命周期结果见同版本[发布验收报告](https://github.com/q1325833367/inspire-jev/releases/download/v1.0.0/acceptance-report.zh-CN.md)。不承诺速度提升比例；登录态兼容能力与各平台宿主边界见[兼容矩阵](docs/COMPATIBILITY.md)。
 
 ## 工作方式
 
@@ -26,10 +26,10 @@ InspireJev 让主 Agent 优先通过 Jev 工具连续执行网页交互，适用
 
 ## 安装与快速开始
 
-先安装 Node.js 24 或更高版本，再安装 RC 发布包及 Chromium：
+先安装 Node.js 24 或更高版本，再安装固定版本发布包及 Chromium：
 
 ```sh
-npm install --global https://github.com/q1325833367/inspire-jev/releases/download/v1.0.0-rc.8/inspire-jev-1.0.0-rc.8.tgz
+npm install --global https://github.com/q1325833367/inspire-jev/releases/download/v1.0.0/inspire-jev-1.0.0.tgz
 npx playwright@1.63.0 install chromium
 inspire-jev setup
 inspire-jev install --entry gpt
@@ -112,11 +112,11 @@ inspire-jev mcp --host mcp
 
 | 平台 | 当前验证状态 |
 | --- | --- |
-| macOS | ARM64 / x64 CI 回归与真实网页适配器流程通过；正式宿主验收未完成 |
+| macOS | ARM64 / x64 CI 回归与真实网页适配器流程通过；实际宿主成绩见同版报告 |
 | Windows | Windows 11 ARM64 / Server x64 CI 通过；本机 ARM64 已验证 Pi、MCP、取消、恢复及安装生命周期 |
 | Linux | ARM64 / x64 CI 回归与真实网页适配器流程通过 |
 
-宿主版本、入口、浏览器能力和平台前置条件以[兼容矩阵](docs/COMPATIBILITY.md)为准。54 项正式验收状态见[验收说明](docs/ACCEPTANCE.md)。
+宿主版本、入口、浏览器能力和平台前置条件以[兼容矩阵](docs/COMPATIBILITY.md)为准。公开网站正式验收范围见[验收说明](docs/ACCEPTANCE.md)。
 
 ## 示例
 

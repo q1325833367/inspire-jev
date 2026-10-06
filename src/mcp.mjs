@@ -7,7 +7,7 @@ import {instructions,toolDefinitions} from './tools.mjs';
 export async function startMCP(options={}){
   const agent=await Agent.create(options);
   const server=new McpServer({name:'inspire-jev',version:VERSION},{instructions:instructions+' 会话属于本服务的 '+agent.config.host+' 命名空间；打开、执行、接管和恢复必须使用同一服务。'});
-  server.registerResource('jev-version','jev://version',{mimeType:'application/json'},async()=>({contents:[{uri:'jev://version',mimeType:'application/json',text:JSON.stringify({version:VERSION,host:agent.config.host})}]}));
+  server.registerResource('jev-version','jev://version',{mimeType:'application/json'},async()=>({contents:[{uri:'jev://version',mimeType:'application/json',text:JSON.stringify({version:VERSION,host:agent.config.host,buildFingerprint:agent.config.buildFingerprint})}]}));
   for(const d of toolDefinitions)server.registerTool(d.name,{title:d.title,description:d.description,inputSchema:d.schema,annotations:{readOnlyHint:!!d.readOnly,destructiveHint:!d.readOnly,openWorldHint:true}},async(args,ctx)=>{
     try{
       const token=ctx.mcpReq?._meta?.progressToken;

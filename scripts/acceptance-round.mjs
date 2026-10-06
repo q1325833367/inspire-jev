@@ -1,0 +1,105 @@
+import {mkdir,readFile,writeFile,readdir,stat} from 'node:fs/promises';
+import {join,resolve} from 'node:path';
+import {VERSION} from '../src/config.mjs';
+import {acceptanceEntries as entries,acceptanceQueue as queue,evaluateAcceptance} from './acceptance-gates.mjs';
+import {hash,json,exclusiveJSON,readLedger} from './acceptance-evidence.mjs';
+import {checkBusiness} from './acceptance-checkers.mjs';
+import {runCommand} from '../src/platform.mjs';
+import {runNative,ingestDesktop} from './acceptance-native.mjs';
+import {derive} from './acceptance-derive.mjs';
+import {bindReuse,resolveReuse} from './acceptance-reuse.mjs';
+
+const args=process.argv.slice(2),command=args[0]||'report',option=name=>{const i=args.indexOf('--'+name);return i<0?undefined:args[i+1];};
+const round=option('round');if(!round||!/^1\.0-[A-Za-z0-9_-]+$/.test(round)){console.error(JSON.stringify({status:'failed',message:'必须指定独立轮次，例如 --round 1.0-r01'}));process.exit(1);}
+const requestedScope=option('scope')||'extended';if(!['extended','public-1.0'].includes(requestedScope))throw Error('未知验收范围');
+const directory=resolve('artifacts/acceptance',round),file=name=>join(directory,name),read=async name=>{try{return await json(file(name));}catch(e){if(e.code==='ENOENT')return null;throw e;}};
+await mkdir(directory,{recursive:true,mode:0o700});
+const origins={'wiki-fields':'https://en.wikipedia.org','wiki-section':'https://en.wikipedia.org','gutenberg-author':'https://www.gutenberg.org','gutenberg-ranking':'https://www.gutenberg.org','github-public':'https://github.com','github-private-draft':'https://github.com'};
+const goals={
+ 'wiki-fields':'从 Wikipedia 首页搜索 Alan Turing，完整采集条目标题和信息框的 Born、Education（或 Alma mater）、Known for 字段原文，并给出四项实际内容及来源。教育必须包含高等教育机构及学位，不能仅列中小学经历；主要贡献需保留该字段全部条目。可以另附中文摘要，但不能用标签、空值或部分段落代替完整字段。',
+ 'wiki-section':'打开 Alan Turing 条目，通过实际页面目录进入 Death，读取章节标题及首段，给出章节来源。',
+ 'gutenberg-author':'从 Project Gutenberg 首页搜索 Charles Dickens，按现场搜索结果顺序逐本核查前三本详情、书号、全部元数据及完整可用阅读格式。每项格式须采集页面名称原文和下载／阅读地址，不自行改写格式名称，并给出各本详情来源；缺项如实记录，不替换书目。每本后返回，最后停在原搜索结果。',
+ 'gutenberg-ranking':'从 Project Gutenberg 首页进入现场昨天下载榜单，读取前十项标题、链接和下载数，保留现场顺序，再用代码按下载数降序排序。',
+ 'github-public':'在 browser-use/jev-ultrafast 的 GitHub 仓库页面读取 README 前1500字符和完整许可证，给出两份实际内容及来源。README 使用代码计数及截取，保留实际原文，不让模型估算长度或重新誊写；许可证保留全文，不混入行号。',
+ 'github-private-draft':'在已登录的 GitHub 新建仓库页面填写给定仓库名称，用文本模型生成一句20–60字的中文工具介绍，说明网页交互用途，选择 Private，停在未提交状态。禁止创建仓库。'
+};
+const starts={'wiki-fields':'https://en.wikipedia.org/wiki/Main_Page','wiki-section':'https://en.wikipedia.org/wiki/Alan_Turing','gutenberg-author':'https://www.gutenberg.org/','gutenberg-ranking':'https://www.gutenberg.org/','github-public':'https://github.com/browser-use/jev-ultrafast','github-private-draft':'https://github.com/new'};
+const routeEntries=['gpt','gpt','pi','pi','codex-cli','gpt','pi','codex-cli','codex-cli','gpt'];
+const routeRequirements=[{}, {}, {}, {}, {repo:'browser-use/browser-use'}, {name:'inspire-acceptance-default-06',descriptionMin:1}, {author:'Jane Austen',count:2}, {topic:'Ada Lovelace',fields:['Born','Known for']}, {count:5,sorted:false}, {name:'inspire-acceptance-default-10',descriptionHash:hash('浏览器自动化验证草稿')}];
+const routeCases=['wiki-fields','wiki-section','gutenberg-author','gutenberg-ranking','github-public','github-private-draft','gutenberg-author','wiki-fields','gutenberg-ranking','github-private-draft'];
+const publicQueue=entries.flatMap(entry=>['wiki-fields','gutenberg-author','github-public'].map(caseId=>({entry,caseId,repeat:1,id:`${entry}/${caseId}/1`})));
+function evaluatePublic({frozen,records,rejected=[]}){const expected=frozen?.queue||publicQueue,perEntry=entries.map(entry=>{const rows=records.filter(r=>r.entry===entry);return{entry,recorded:rows.length,success:rows.filter(r=>r.businessGoalPassed).length,jevAlone:rows.filter(r=>r.businessGoalPassed&&r.handoffs===0).length,required:3};});return{formalRuns:records.length,perEntry,remaining:expected.filter(q=>!records.some(r=>r.id===q.id)),rejected,gates:{frozen:!!frozen,business:records.length===9&&perEntry.every(r=>r.success===3)&&rejected.length===0},timing:null,releasePassed:false};}
+async function sourceFiles(){const files={};for(const base of ['src','scripts','integrations','skills','docs']){async function walk(path){for(const e of await readdir(path,{withFileTypes:true})){const p=join(path,e.name);if(e.isDirectory())await walk(p);else files[p]=hash(await readFile(p));}}await walk(base);}for(const p of ['package.json','package-lock.json','npm-shrinkwrap.json','plugin.json','mcp.json','.mcp.json','README.md','README.en.md'])files[p]=hash(await readFile(p));return files;}
+async function integrity(frozen){if(!frozen)return false;const {protocolHash,...payload}=frozen;if(hash(payload)!==protocolHash)return false;for(const [path,digest] of Object.entries(frozen.files))if(hash(await readFile(path))!==digest)return false;return hash(await readFile(frozen.candidate.archivePath))===frozen.candidate.sha256;}
+async function jobOf(row,frozen,mode='hybrid'){
+ const reused=frozen.evidenceReuse?.jobs?.[row.id];if(reused)return(await resolveReuse(reused,frozen.candidate)).job;
+ const id=mode==='baseline'?`baseline/${row.caseId}/${row.repeat}`:row.id,jobDir=join(directory,'jobs',id),contextPath=join(jobDir,'context.json');let old;try{old=await json(contextPath);}catch(e){if(e.code!=='ENOENT')throw e;}if(old)return old;
+ const settings=frozen.hostSettings[row.entry];
+ const name=row.requirements?.name||`inspirejev-acceptance-${round.replace('1.0-','')}-${row.entry}-${row.repeat}`,job={...row,id,mode,runtimeRoot:settings.runtimeRoot,directory:jobDir,contextPath,promptPath:join(jobDir,'prompt.txt'),protocolHash:frozen.protocolHash,packageSHA256:frozen.candidate.sha256,expectedNameHash:hash(name),long:row.kind==='long'};
+ const business=row.kind==='long'?'从 Project Gutenberg 首页进入现场昨天下载榜单，现场发现前27本，保存顺序与来源，再依序逐本打开详情核对书号、标题、元数据及全部可用阅读格式，每本后返回原榜单；缺项如实记录，不替换。至少55次真实导航或交互，最终回到原榜单并核验全部27本。':row.goal||goals[row.caseId];
+ const initial=row.url||starts[row.caseId]||'https://www.gutenberg.org/';
+ const prompt=[business,row.caseId==='github-private-draft'?`给定仓库名称：${name}`:'',`使用本宿主持久默认档案 ${settings.profileId}，起始页面 ${initial}；允许来源 ${row.allowedOrigins?.join(',')||origins[row.caseId]||'https://www.gutenberg.org'}。不要创建新登录档案，不跨宿主复制 cookies。`,row.kind==='route'?'':mode==='baseline'?'执行路径：相同 Jev 浏览器适配器，主模型每次使用新鲜 ref 决定并执行一个动作，仅使用 session inspect/act，禁止 run/resume。':'执行路径：正常混合连续执行，主 Agent 组织完整业务阶段和核验；必要时原现场接管并续跑。',row.kind==='long'?'任务预算900000毫秒、200动作、每片段45000毫秒。':'普通核心预算90000毫秒、40动作、每片段45000毫秒。','完整核验后使用 jev_session close 关闭本任务会话、保留档案，再给出最终 JSON。','不读取本地检查器、测试源码或预置网页答案，不以后台批量接口替代浏览器。不得提交私有仓库草稿。','最终只返回合法 JSON，不使用 Markdown。completed 必须为布尔值。成功示例：{"completed":true,"summary":"完成情况","results":{"字段":"实际采集内容与来源"}}。未完成时 completed 为 false；榜单另加 ranking 数组，每项为 {"url":"实际来源","downloads":实际数字}。'].filter(Boolean).join('\n');
+ await exclusiveJSON(contextPath,job);await writeFile(job.promptPath,prompt+'\n',{flag:'wx',mode:0o600});return job;
+}
+async function deriveFor(job,frozen){
+ const reused=frozen.evidenceReuse?.jobs?.[job.id];if(!reused)return derive(job,frozen);
+ const source=await resolveReuse(reused,frozen.candidate);
+ return derive(source.job,source.frozen,{evidencePath:join(directory,'jobs',job.id,'derived-evidence.json'),verificationProtocolHash:frozen.protocolHash});
+}
+async function platformGate(frozen,name,operations){
+ const index=await read(name);if(!index||index.protocolHash!==frozen?.protocolHash)return false;
+ for(const platform of ['macos-arm64','windows-arm64','linux-arm64']){
+  const item=index.receipts?.find(r=>r.platform===platform);if(!item?.journalPath)return false;const events=await readLedger(item.journalPath);if(hash(await readFile(item.journalPath))!==item.sha256)return false;
+  const reused=frozen.evidenceReuse?.journals?.[name]?.[platform],source=reused?await resolveReuse(reused,frozen.candidate):null;
+  if(source&&source.paths.journal!==item.journalPath)return false;
+  if(!events.some(e=>e.type==='platform'&&e.platform===platform&&e.protocolHash===(source?.frozen.protocolHash||frozen.protocolHash)&&e.packageSHA256===frozen.candidate.sha256))return false;
+  const producer=hash(await readFile(name==='platform-evidence.json'?'scripts/acceptance-platform.mjs':'scripts/acceptance-lifecycle.mjs'));if(!events.some(e=>e.type==='platform'&&e.producerSHA256===producer))return false;
+  if(!operations.every(op=>events.some(e=>e.type==='process_check'&&e.operation===op&&e.exitCode===0&&e.actualResultHash&&e.expectedResultHash===e.actualResultHash)))return false;
+  const job=index.jobs?.find(j=>j.platform===platform);if(!job||!(await deriveFor(job,frozen)).businessGoalPassed)return false;
+ }return true;
+}
+async function loginGate(frozen){
+ const index=await read('login-evidence.json');if(!index||index.protocolHash!==frozen?.protocolHash)return false;
+ for(const entry of entries){const proof=index[entry];if(!proof)return false;const events=await readLedger(proof.observerPath),native=await readLedger(proof.nativePath),runtimes=events.filter(e=>e.type==='runtime');
+  if(new Set(runtimes.map(e=>e.pid)).size<2||runtimes.some(e=>e.host!==entry||e.buildFingerprint!==frozen.candidate.buildFingerprint||e.protocolHash!==frozen.protocolHash))return false;
+  const authenticated=events.filter(e=>e.type==='snapshot'&&e.snapshot.authenticated);if(new Set(authenticated.map(e=>e.sessionId)).size<2||authenticated.some(e=>e.profileId!==frozen.hostSettings[entry].profileId))return false;
+  const calls=events.filter(e=>e.type==='tool_start'),ends=events.filter(e=>e.type==='tool_end');if(ends.some(e=>!native.some(n=>n.type==='native_tool'&&n.name===e.name&&n.resultHash===e.resultHash&&n.argsHash===calls.find(c=>c.callId===e.callId)?.argsHash)))return false;
+ }return true;
+}
+async function report(frozen){
+ const records=[],baselines=[],extras={longRuns:[],defaultSelection:[],comparisons:[]},rejected=[],states={passed:0,failed:0,pending:0,blocked:0};
+ if(frozen){for(const row of [...frozen.queue,...frozen.longTasks,...frozen.routing,...frozen.baselines]){const job=await jobOf(row,frozen,row.kind==='baseline'?'baseline':'hybrid');try{const result=await deriveFor(job,frozen);result.businessGoalPassed?states.passed++:states.failed++;if(row.kind==='long')extras.longRuns.push(result);else if(row.kind==='route')extras.defaultSelection.push(result);else if(row.kind==='baseline')baselines.push(result);else records.push(result);}catch(e){if(e.code==='ENOENT')states.pending++;else{states.blocked++;rejected.push({id:job.id,reason:e.message});}}}
+  for(const [i,pair] of frozen.comparisonProtocol.pairs.entries()){const hybrid=records.find(r=>r.id===pair.hybridId),baseline=baselines.find(r=>r.id===pair.baselineId);if(hybrid&&baseline){const evidencePath=join(directory,`pair-${i+1}.json`),proof={hybrid:hybrid.evidenceSHA256,baseline:baseline.evidenceSHA256};try{await exclusiveJSON(evidencePath,proof);}catch(e){if(e.code!=='EEXIST')throw e;}extras.comparisons.push({...hybrid,id:`pair-${i+1}`,order:pair.order,nativeMs:baseline.totalMs,hybridMs:hybrid.totalMs,nativePassed:baseline.businessGoalPassed,hybridPassed:hybrid.businessGoalPassed,sameModel:hash(baseline.model)===hash(hybrid.model),sameBrowserAdapter:hash(baseline.adapterIdentity)===hash(hybrid.adapterIdentity),sameInitialState:baseline.profileId===hybrid.profileId&&hash(baseline.initialState)===hash(hybrid.initialState),includesPlanningTakeoverVerification:true,baselineMode:'same-adapter-stepwise',evidencePath,evidenceSHA256:hash(await readFile(evidencePath))});}}
+ }
+ const sourceIntegrity=await integrity(frozen),evaluated=frozen?.scope==='public-1.0'?evaluatePublic({frozen:sourceIntegrity?frozen:null,records,rejected}):evaluateAcceptance({frozen:sourceIntegrity?frozen:null,records,extras,evidenceVerified:r=>r.derived===true});
+ evaluated.gates.nativeEvidenceComplete=rejected.length===0&&states.blocked===0;evaluated.gates.packageIdentity=sourceIntegrity&&records.length===frozen?.queue.length;
+ evaluated.gates.hostAndNetwork=entries.every(entry=>frozen?.prerequisites?.[entry]?.hostModelVerified&&frozen?.prerequisites?.[entry]?.noTunVerified)&&(frozen?.scope==='public-1.0'||await loginGate(frozen));
+ const all=[...records,...baselines,...extras.longRuns,...extras.defaultSelection];evaluated.gates.safety=all.length===(frozen?.scope==='public-1.0'?9:85)&&all.every(r=>r.falseCompletions===0&&r.unauthorizedActions===0&&r.unknownSubmissionReplays===0);
+ evaluated.gates.platforms=await platformGate(frozen,'platform-evidence.json',['runtime','sandbox','proxy','cancel','recover']);
+ evaluated.gates.lifecycle=await platformGate(frozen,'lifecycle-evidence.json',['setup','models','key-change','upgrade','rollback','reinstall','uninstall-entry','uninstall-all']);
+ evaluated.releasePassed=Object.values(evaluated.gates).every(Boolean);const output={...evaluated,round,version:frozen?.version||VERSION,scope:frozen?.scope||'extended',performanceClaim:false,status:evaluated.releasePassed?'acceptance_passed':'candidate',sourceIntegrity,states,evidenceReuse:frozen?.evidenceReuse?{method:'same-package-native-revalidation',jobs:Object.fromEntries(Object.entries(frozen.evidenceReuse.jobs).map(([id,p])=>[id,{sourceRound:p.sourceRound,sourceProtocolHash:p.protocolHash,nativeSHA256:p.digests.native,observerSHA256:p.digests.observer}]))}:null,rejectedEvidence:rejected,note:'原生事件与独立检查生成成绩；开发验证、阻塞和缺证据不算通过。'};
+ await writeFile(file('report.json'),JSON.stringify(output,null,2)+'\n',{mode:0o600});return output;
+}
+try{
+ if(command==='prepare'){
+  await exclusiveJSON(file('queue.json'),{round,version:VERSION,status:'draft',scope:requestedScope,queue:requestedScope==='public-1.0'?publicQueue:queue});const prompts=await json(resolve('artifacts/acceptance/natural-prompts.json')).catch(()=>null);if(prompts)await exclusiveJSON(file('natural-prompts.json'),prompts);
+  await exclusiveJSON(file('host-settings.json'),Object.fromEntries(entries.map(entry=>[entry,{entry,model:null,profileId:null,command:null,commandVersion:null}])));console.log(JSON.stringify({status:'draft',round,businessRuns:requestedScope==='public-1.0'?9:54,totalRuns:requestedScope==='public-1.0'?9:85,directory}));
+ }else if(command==='preflight'){
+  const candidate=await read('candidate.json'),settings=await read('host-settings.json'),missing=[];if(!candidate?.sha256||!candidate.buildFingerprint||!candidate.toolFingerprint)missing.push('candidate identity');for(const entry of entries)if(!settings?.[entry]?.model||!settings[entry].profileId||!settings[entry].commandVersion)missing.push(entry+' host settings');const proofs=await read('prerequisites.json');for(const entry of entries)if(!proofs?.[entry]?.nativeEvidencePath||!proofs[entry].networkEvidencePath)missing.push(entry+' native/network evidence');console.log(JSON.stringify({status:missing.length?'blocked':'ready',round,missing}));if(missing.length)process.exitCode=2;
+ }else if(command==='freeze'){
+  if(await read('freeze.json'))throw Error('冻结轮次已存在，不得覆盖');const candidate=await read('candidate.json'),hostSettings=await read('host-settings.json'),naturalPrompts=await read('natural-prompts.json'),proofs=await read('prerequisites.json'),githubForm=await read('github-form.json');
+  const draft=await read('queue.json'),publicScope=draft?.scope==='public-1.0',activeQueue=publicScope?publicQueue:queue;
+  if(VERSION!=='1.0.0'||candidate?.version!=='1.0.0')throw Error('正式候选版本必须为 1.0.0');
+  if(!candidate||hash(await readFile(candidate.archivePath))!==candidate.sha256||!candidate.buildFingerprint||!candidate.toolFingerprint)throw Error('候选包与运行指纹不完整');if(!publicScope&&(!githubForm?.checkerSHA256||githubForm.checkerSHA256!==hash(await readFile('scripts/acceptance-checkers.mjs'))))throw Error('实际表单检查器尚未冻结');if(!publicScope&&(!Array.isArray(naturalPrompts)||naturalPrompts.length!==10||new Set(naturalPrompts.map(p=>p.id)).size!==10||naturalPrompts.some(p=>!p.goal?.trim()||/jev/i.test(p.goal))))throw Error('十条自然原文不足或包含 Jev');
+  const prerequisites={};for(const entry of entries){const proof=proofs?.[entry];if(!proof)throw Object.assign(Error(entry+' 原生预检缺失'),{blocked:true});const native=await readLedger(proof.nativeEvidencePath),network=await readLedger(proof.networkEvidencePath);const model=native.find(e=>e.type==='native_model')||native.find(e=>e.type==='native_start');if(model?.model!==hostSettings[entry].model||!native.some(e=>e.type==='native_tool'&&e.name==='jev_session'&&e.status==='completed'))throw Error(entry+' 原生调用或模型未验证');const route=network.find(e=>e.type==='network'&&e.defaultRouteInterface&&!/tun|tap|vpn/i.test(e.defaultRouteInterface)&&e.modelProxy&&e.browserProxy&&e.observedPublicOrigin);if(!route)throw Object.assign(Error(entry+' 无 TUN 网络证据缺失'),{blocked:true});prerequisites[entry]={hostModelVerified:true,noTunVerified:true,manualLoginResumeVerified:false,nativeSHA256:hash(await readFile(proof.nativeEvidencePath)),networkSHA256:hash(await readFile(proof.networkEvidencePath))};}
+  const reuseSpec=await read('evidence-reuse.json'),evidenceReuse=reuseSpec?await bindReuse(reuseSpec,candidate):null;
+  const comparisonProtocol={method:'same-adapter-stepwise',pairs:(publicScope?[]:queue.filter(r=>r.entry==='gpt')).map((r,i)=>({hybridId:r.id,baselineId:`baseline/${r.caseId}/${r.repeat}`,order:i%2?'hybrid-first':'native-first'}))};const frozen={round,scope:draft.scope||'extended',policy:publicScope?{businessRuns:9,publicWebsitesOnly:true,loginRequired:false,performanceClaim:false}:null,version:VERSION,at:new Date().toISOString(),candidate,evidenceReuse,files:await sourceFiles(),queue:activeQueue,longTasks:(publicScope?[]:entries).map(entry=>({entry,caseId:'gutenberg-long',kind:'long',id:`long/${entry}`,long:true})),routing:(publicScope?[]:naturalPrompts).map((p,i)=>({...p,entry:routeEntries[i],caseId:routeCases[i],requirements:routeRequirements[i],kind:'route',id:p.id})),baselines:(publicScope?[]:queue.filter(r=>r.entry==='gpt')).map(r=>({...r,id:`baseline/${r.caseId}/${r.repeat}`,kind:'baseline'})),prerequisites,naturalPrompts,hostSettings,githubForm,comparisonProtocol};frozen.protocolHash=hash(frozen);await exclusiveJSON(file('freeze.json'),frozen);console.log(JSON.stringify({status:'frozen',round,protocolHash:frozen.protocolHash,totalRuns:publicScope?9:85,loginRequired:!publicScope}));
+ }else if(['run','compare','long','route'].includes(command)){
+  const frozen=await read('freeze.json');if(!await integrity(frozen))throw Error('冻结协议或候选包发生变化');const entry=option('entry');let rows=command==='long'?frozen.longTasks:command==='route'?frozen.routing:frozen.queue;if(command==='compare')rows=frozen.comparisonProtocol.pairs.flatMap(p=>{const h=frozen.queue.find(r=>r.id===p.hybridId),b=frozen.baselines.find(r=>r.id===p.baselineId);return p.order==='native-first'?[b,h]:[h,b];});if(entry)rows=rows.filter(r=>r.entry===entry);if(option('id'))rows=rows.filter(r=>r.id===option('id'));const results=[];
+  for(const row of rows){const job=await jobOf(row,frozen,row.kind==='baseline'?'baseline':'hybrid');try{await stat(join(job.directory,'native.jsonl'));results.push({jobId:job.id,status:'existing',note:'不会重跑或覆盖'});continue;}catch(e){if(e.code!=='ENOENT')throw e;}results.push(await runNative(job,frozen.hostSettings[row.entry]));}console.log(JSON.stringify({round,results}));if(results.some(r=>r.status==='queued'))process.exitCode=2;else if(results.some(r=>r.status==='failed'))process.exitCode=1;
+ }else if(command==='ingest-desktop'){
+  const frozen=await read('freeze.json'),id=option('id'),row=[...frozen.queue,...frozen.longTasks,...frozen.routing,...frozen.baselines].find(r=>r.id===id);if(!row||row.entry!=='gpt')throw Error('未知桌面任务编号');const job=await jobOf(row,frozen,row.kind==='baseline'?'baseline':'hybrid');await ingestDesktop(job,option('source'),{startedAt:Number(option('started-at')),completedAt:Number(option('completed-at')),durationMs:Number(option('duration-ms'))});console.log(JSON.stringify({status:'ingested',id}));
+ }else if(['report','verify','promote'].includes(command)){
+  const frozen=await read('freeze.json'),output=await report(frozen);if(command==='promote'){if(!output.releasePassed)throw Error('正式发布守卫未通过；禁止建立稳定清单或发布');runCommand(process.execPath,['scripts/scan-secrets.mjs','--history']);runCommand(process.execPath,['scripts/scan-secrets.mjs','--archive',frozen.candidate.archivePath]);const manifest=await json(frozen.candidate.manifestPath);if(manifest.sha256!==frozen.candidate.sha256)throw Error('待发布包与验收包不同');await exclusiveJSON(file('stable-release-manifest.json'),{...manifest,status:'stable',protocolHash:frozen.protocolHash,reportSHA256:hash(await readFile(file('report.json')))});}console.log(JSON.stringify({...output,remaining:output.remaining.length},null,2));if(command==='verify'&&!output.releasePassed)process.exitCode=output.states.blocked?2:1;
+ }else throw Error('用法：prepare|preflight|freeze|run|compare|long|route|ingest-desktop|report|verify|promote --round 1.0-r01');
+}catch(error){console.error(JSON.stringify({status:error.blocked?'blocked':'failed',round,message:error.message}));process.exitCode=error.blocked?2:1;}

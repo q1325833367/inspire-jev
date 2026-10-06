@@ -1,6 +1,6 @@
 {
   "name": "inspire-jev",
-  "version": "1.0.0-rc.8",
+  "version": "1.0.0",
   "description": "A Jev-powered execution toolkit, starting with browser automation.",
   "type": "module",
   "engines": {
@@ -42,7 +42,7 @@
     "check": "node scripts/check.mjs",
     "doctor": "node src/cli.mjs doctor",
     "mcp": "node src/cli.mjs mcp",
-    "acceptance": "node scripts/acceptance.mjs",
+    "acceptance": "node scripts/acceptance-round.mjs",
     "check:secrets": "node scripts/scan-secrets.mjs",
     "test:public": "node scripts/public-smoke.mjs",
     "package": "node scripts/package.mjs"
@@ -60,7 +60,7 @@
     "@modelcontextprotocol/server": "2.2.0",
     "cross-spawn": "7.0.6",
     "playwright": "1.63.0",
-    "undici": "8.9.0",
+    "undici": "8.11.2",
     "zod": "4.6.5"
   },
   "license": "MIT",

@@ -4,7 +4,7 @@
 
 |工具|输入|输出|
 |---|---|---|
-|jev_session|action：open/list/profiles/useProfile/inspect/act/close；会话、档案、URL、来源、目标 ref|会话、宿主档案目录、默认档案、有限观测、新鲜目标引用或动作结果|
+|jev_session|action：open/list/profiles/useProfile/inspect/act/verifyAction/close；会话、档案、URL、来源、目标 ref|会话、运行身份、宿主档案目录、有限观测、新鲜目标引用或动作结果|
 |jev_run|task：sessionId、requestId、goal、inputs、subgoals、allowedOrigins、completionChecks、budget|RunResult 摘要与 checkpointId|
 |jev_resume|runId、可选 reattach|重新观测后继续；未知效果先检查|
 |jev_status|runId|状态、阶段证据、采集数据、剩余要求和模型版本|
@@ -41,6 +41,12 @@ verified 表示主 Agent 指定的全部条件已通过。主 Agent 最终仍须
 独立 Chromium 会话把已观测的导航地址保存在私密会话记录中，最多保留 201 个地址。只有相同档案重新打开记录中的当前地址时才恢复该链。返回动作先校验当前现场与目的地；原生历史仍匹配时使用浏览器后退，否则以 GET 打开已观测目的地，再检查实际结果。恢复不提前访问历史页面、不重放点击或 POST。旧记录缺少导航链时不推测历史，返回动作由主 Agent 在现场接管。
 
 动作阶段：prepared 表示只持久化意图、尚未交给驱动；dispatching 表示进入驱动调用、效果可能未知；acknowledged 表示驱动返回，之后仍核对实际效果。prepared 的恢复不当作已执行；dispatching/acknowledged 的异常必须先查效果。确认丢失不能直接重放提交。点击使用固定元素句柄，并在提交给驱动前检查就绪与目标语义，避免重渲染后自动改点其他控件。
+
+接管动作返回 `actionId` 和 `effect`：`effect_observed`、`not_executed` 或 `unknown`。未知提交阻止同一档案的新任务和接管动作。使用 `jev_session verifyAction`，传入同会话的 `sessionId`、`actionId` 及明确的实际页面 `checks`；不传 checks 时尝试原动作的局部效果检查。此操作只读、不重放、不增加动作次数；重复核验幂等。返回 `verified / scope: action` 仅证明该动作效果已观察，任务仍需完整业务核验。无法确认时保持未知状态和持久记录。
+
+单步填写 `act` 接受明确的 `value`，或用于非敏感字段的新文字生成要求 `generate`；二者互斥。生成由已配置文本模型处理，填写前再次检查目标新鲜度，输出仅包含文本模型标识、用量与耗时。没有值或生成要求时不填写；复选框必须给出布尔值。
+
+档案、会话与任务结果报告引擎版本、构建指纹和宿主身份；独立浏览器模式明确标注。构建指纹对应实际运行目录内容，不能用已安装版本替代运行版本核对。
 
 同一现场正在执行时，第二写入任务和会改变 ref 的 inspect 返回 TAB_BUSY；使用 jev_status 查看进度。登录表单字段、密码、OTP、支付凭据和密钥字段不进入 Jev 候选；表单目的地也须位于允许来源。授权、审批和登录仍使用宿主原有机制。
 

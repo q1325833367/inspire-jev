@@ -26,7 +26,7 @@ try{
   out({configured:true,home:configured.config.home,trace:false,models:publicCredentials(await readCredentials(configured.config.envFile,{requireKey:false})),installed});
  }else if(command==='config')out(await configCommand(argv[0]||'show',argv[1],{stdin:argv.includes('--stdin')}));
  else if(command==='linux-sandbox-profile')process.stdout.write(await(await import('../scripts/linux-sandbox.mjs')).linuxSandboxProfile());
- else if(command==='install')out(await installEntries({entry:flag('entry')||'all',downloadBrowser:!argv.includes('--skip-browser')}));
+ else if(command==='install'){if(argv.includes('--stage-only')&&!flag('candidate'))throw Error('--stage-only 需要独立 --candidate 编号');out(await installEntries({entry:flag('entry')||'all',entrySet:argv.includes('--stage-only')?[]:undefined,downloadBrowser:!argv.includes('--skip-browser'),candidateId:flag('candidate')}));}
  else if(command==='upgrade')out(await upgrade(flag('package')));
  else if(command==='rollback')out(await rollback(flag('version')));
  else if(command==='uninstall')out(await uninstall({entry:flag('entry')||'all'}));
@@ -46,5 +46,5 @@ try{
  }else if(command==='lock'){
   const identity=flag('identity');if(!identity)throw Error('需要 --identity 真实会话身份');out(argv.includes('--recover')?await recoverLock(identity,{inspected:argv.includes('--inspected')}):await inspectLock(identity));
  }else if(command==='version')out({version:VERSION});
- else out({name:'InspireJev',version:VERSION,commands:['setup [--env-file 路径] [--entry gpt|pi|mcp|all]','install --entry gpt|pi|mcp|all','config show|set 名称|unset 名称','doctor [--models]','linux-sandbox-profile','mcp --host gpt|pi|codex-cli|mcp','upgrade --package 路径或固定版本URL','rollback --version 版本','uninstall --entry gpt|pi|mcp|all','cleanup --host 宿主 [--apply]','lock --identity 身份 [--recover --inspected]']});
+ else out({name:'InspireJev',version:VERSION,commands:['setup [--env-file 路径] [--entry gpt|pi|mcp|all]','install --entry gpt|pi|mcp|all [--candidate 编号 --stage-only]' ,'config show|set 名称|unset 名称','doctor [--models]','linux-sandbox-profile','mcp --host gpt|pi|codex-cli|mcp','upgrade --package 路径或固定版本URL','rollback --version 版本','uninstall --entry gpt|pi|mcp|all','cleanup --host 宿主 [--apply]','lock --identity 身份 [--recover --inspected]']});
 }catch(e){process.stderr.write(JSON.stringify({error:e.code||e.name,message:e.message,...(e.details?{details:e.details}:{})})+'\n');process.exitCode=1;}

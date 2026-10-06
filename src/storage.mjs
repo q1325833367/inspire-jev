@@ -31,7 +31,14 @@ export class Store {
       report.eligible.push(name);
       if(!dryRun){if(value.requestId){const request=await this.read('requests',value.requestId);await this.write('requests',value.requestId,{...request,archived:true,status:'verified',runId:value.runId});}await unlink(path);const extra=join(this.root,'..','..','checkpoints-v2',name);await unlink(extra).catch(e=>{if(e.code!=='ENOENT')throw e;});report.deleted.push(name);}
     }
-    for(const name of await readdir(join(this.root,'supervisor'))){if(!name.endsWith('.json'))continue;const bytes=(await stat(join(this.root,'supervisor',name))).size;report.supervisorProtected.push({file:name,reason:'requires_effect_verification',bytes});report.protectedBytes+=bytes;}
+    for(const name of await readdir(join(this.root,'supervisor'))){
+      if(!name.endsWith('.json'))continue;
+      const path=join(this.root,'supervisor',name),bytes=(await stat(path)).size;let entry;
+      try{entry=JSON.parse(await readFile(path,'utf8'));}catch{}
+      const resolved=entry?.effect==='effect_observed'||entry?.effect==='not_executed';
+      if(resolved&&now-(entry.verifiedAt||entry.finishedAt||entry.startedAt||now)>=7*86400000){report.eligible.push('supervisor/'+name);if(!dryRun){await unlink(path);report.deleted.push('supervisor/'+name);}}
+      else{report.supervisorProtected.push({file:name,reason:resolved?'retention_period':'requires_effect_verification',bytes});report.protectedBytes+=bytes;}
+    }
     report.traces=cleanupTraceLogs(join(this.root,'traces'),{dryRun,now});
     return report;
   }

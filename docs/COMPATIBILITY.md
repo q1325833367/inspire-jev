@@ -1,6 +1,6 @@
 # 兼容矩阵
 
-当前发布包为 `1.0.0-rc.7`。以下状态分别记录核心、浏览器和主 Agent 入口的实际证据；正式 54 次验收与速度对照尚未完成。
+1.0 的九项公开网站原生验收与三系统安装结果以[同版报告](https://github.com/q1325833367/inspire-jev/releases/download/v1.0.0/acceptance-report.json)为准。以下历史证据保留原版本与分类；登录表单及速度对照不在首发验收范围。
 
 |系统 / 架构|核心回归|真实浏览器|GPT 插件|Pi|stdio MCP|
 |---|---|---|---|---|---|
@@ -15,7 +15,7 @@ RC.7 [六平台 CI](https://github.com/q1325833367/inspire-jev/actions/runs/3740
 
 macOS 原生 Codex CLI 0.160.1 / GPT 通过 MCP 完成 Books 分类、现场首本详情、价格、UPC 与返回流程。共 4 次动作（含 1 次接管滚动）、核心累计 1,801 毫秒、端到端 90,860 毫秒。错误采集方案及参数拒绝记录保留；该开发验证不计入桌面插件的正式成绩。
 
-Windows 11 本机使用微软 ARM64 90 天评估系统，Node.js 原生 ARM64，Chromium 使用 x64 模拟。模型与浏览器分别使用显式 HTTP 代理，TUN 关闭。安装、Pi/MCP 实际流程、升级、回退、卸载和凭据保留见 [Windows 验证记录](validation/windows11-arm64.md)。计时、主模型用量与全部限制见 [发布验证附件](https://github.com/q1325833367/inspire-jev/releases/download/v1.0.0-rc.7/validation-evidence.json)。
+Windows 11 本机使用微软 ARM64 90 天评估系统，Node.js 原生 ARM64，Chromium 使用 x64 模拟。模型与浏览器分别使用显式 HTTP 代理，TUN 关闭。安装、Pi/MCP 实际流程、升级、回退、卸载和凭据保留见 [Windows 验证记录](validation/windows11-arm64.md)。计时、主模型用量与全部限制见 [发布验证附件](https://github.com/q1325833367/inspire-jev/releases/download/v1.0.0-rc.8/validation-evidence.json)。
 
 CI 使用 macOS ARM/Intel、Ubuntu ARM/x64、Windows 11 ARM 和 Windows Server x64 标准运行器。Server 成绩不等于 Windows 11 实机成绩。[GitHub 运行器规格](https://docs.github.com/en/actions/reference/runners/github-hosted-runners)。
 

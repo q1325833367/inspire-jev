@@ -6,12 +6,12 @@
 
 A Jev-powered execution toolkit, starting with browser automation.
 
-[![Version: 1.0.0-rc.8](https://img.shields.io/badge/version-1.0.0--rc.8-orange)](https://github.com/q1325833367/inspire-jev/releases/tag/v1.0.0-rc.8)
+[![Version: 1.0.0](https://img.shields.io/badge/version-1.0.0-blue)](https://github.com/q1325833367/inspire-jev/releases/tag/v1.0.0)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 InspireJev lets a main agent use Jev tools first for continuous browser execution, including search, filtering, data collection, and form filling. The main agent retains the full objective and handles planning, authorization, verification, and takeover. Jev selects actions from candidates observed on the current page.
 
-This version is a **release candidate**: core CI regressions and the real browser adapter flow have passed on six platforms, with 61 local regressions passing on macOS. Native Windows 11 ARM64 validation covers Pi, MCP, a 51-action real-site task, and restart/resume. The 54-run formal acceptance suite and speed comparison remain unfinished. See the [compatibility matrix](docs/COMPATIBILITY.md) and [acceptance protocol](docs/ACCEPTANCE.md) for evidence and gates.
+Version 1.0 targets public websites that require no login. Native host workflows and platform lifecycle checks are recorded in the [same-version acceptance report](https://github.com/q1325833367/inspire-jev/releases/download/v1.0.0/acceptance-report.json). No percentage speedup is claimed. Session compatibility and host boundaries are listed in the [compatibility matrix](docs/COMPATIBILITY.md).
 
 ## How it works
 
@@ -26,10 +26,10 @@ Runtime dependencies: **Node.js 24+**, Playwright 1.63, MCP SDK, Undici, Zod, an
 
 ## Installation and quickstart
 
-Install Node.js 24 or later, then install the RC release package and Chromium:
+Install Node.js 24 or later, then install the release package and Chromium:
 
 ```sh
-npm install --global https://github.com/q1325833367/inspire-jev/releases/download/v1.0.0-rc.8/inspire-jev-1.0.0-rc.8.tgz
+npm install --global https://github.com/q1325833367/inspire-jev/releases/download/v1.0.0/inspire-jev-1.0.0.tgz
 npx playwright@1.63.0 install chromium
 inspire-jev setup
 inspire-jev install --entry gpt
@@ -116,7 +116,7 @@ See the [public API](docs/API.md) for parameters and states.
 | Windows | Windows 11 ARM64 / Server x64 CI passed; local ARM64 validation covers Pi, MCP, cancellation, recovery, and the installation lifecycle |
 | Linux | ARM64 / x64 CI regressions and real browser adapter flow passed |
 
-The [compatibility matrix](docs/COMPATIBILITY.md) records host versions, entries, browser capabilities, and platform prerequisites. The [acceptance protocol](docs/ACCEPTANCE.md) tracks the 54-case formal suite.
+The [compatibility matrix](docs/COMPATIBILITY.md) records host versions, entries, browser capabilities, and platform prerequisites. The [acceptance protocol](docs/ACCEPTANCE.md) describes the nine public-site workflows.
 
 ## Examples
 

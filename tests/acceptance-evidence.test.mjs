@@ -1,0 +1,73 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtemp,readFile,writeFile,rm,access} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {createServer} from 'node:http';
+import {ledger,readLedger,exclusiveJSON,hash} from '../scripts/acceptance-evidence.mjs';
+import {normalizeNative} from '../scripts/acceptance-native.mjs';
+import {checkBusiness} from '../scripts/acceptance-checkers.mjs';
+import {Agent} from '../src/agent.mjs';
+
+test('证据追加保留顺序与哈希，修改、截断和覆盖冻结文件均拒绝',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'inspire-evidence-')),path=join(dir,'events.jsonl');try{
+  const emit=await ledger(path);await Promise.all([emit({type:'start'}),emit({type:'end'})]);assert.equal((await readLedger(path)).length,2);
+  const text=await readFile(path,'utf8');await writeFile(path,text.replace('start','changed'));await assert.rejects(readLedger(path),/修改/);
+  await writeFile(path,text.slice(0,-1));await assert.rejects(readLedger(path),/完整写入/);
+  await exclusiveJSON(join(dir,'freeze.json'),{protocolHash:'fixed'});await assert.rejects(exclusiveJSON(join(dir,'freeze.json'),{}),{code:'EEXIST'});
+ }finally{await rm(dir,{recursive:true,force:true});}
+});
+test('原生事件归一化保留实际参数与结果摘要，丢弃输入实值和消息正文',()=>{
+ const state={calls:new Map()},value='SENSITIVE_TEST_TEXT_43',args={value},result={status:'executed',page:{value}};
+ normalizeNative('pi',{type:'tool_execution_start',toolCallId:'id',toolName:'jev_session',args},state);
+ const events=normalizeNative('pi',{type:'tool_execution_end',toolCallId:'id',toolName:'jev_session',result:{details:{result}}},state);
+ assert.equal(events[0].argsHash,hash(args));assert.equal(events[0].resultHash,hash(result));assert.ok(!JSON.stringify(events).includes(value));
+ assert.equal(normalizeNative('pi',{type:'message_end',message:{role:'user',content:[{type:'text',text:value}]}},state).length,0);
+});
+test('Pi 数组列表与 MCP 对象列表使用同一证据摘要，内容变化仍可辨别',()=>{
+ const state={calls:new Map()},args={action:'list'},sessions=[{id:'session-a',status:'closed'}];
+ normalizeNative('pi',{type:'tool_execution_start',toolCallId:'list',toolName:'jev_session',args},state);
+ const event=value=>({type:'tool_execution_end',toolCallId:'list',result:{details:{result:value}}});
+ const array=normalizeNative('pi',event(sessions),state)[0],object=normalizeNative('pi',event({sessions}),state)[0];
+ assert.equal(array.resultHash,object.resultHash);assert.equal(array.resultHash,hash({sessions}));assert.equal(array.argsHash,hash(args));
+ assert.notEqual(normalizeNative('pi',event([{id:'session-b',status:'closed'}]),state)[0].resultHash,array.resultHash);
+ assert.equal(normalizeNative('pi',event([]),state)[0].resultHash,hash({sessions:[]}));
+});
+test('只看见正确网页但没有主模型收到的字段，独立检查不能通过',()=>{
+ const url='https://en.wikipedia.org/wiki/Alan_Turing',snapshot={url,heading:'Alan Turing',fields:['Born actual birth','Education actual education','Known for actual contribution']};
+ const events=[{type:'snapshot',snapshot},{type:'action',phase:'issued',kind:'fill',valueHash:hash('Alan Turing')}];
+ assert.equal(checkBusiness('wiki-fields',events).passed,false);
+ events.push({type:'tool_end',collection:{read:{url,data:{title:'Alan Turing'}}}});assert.equal(checkBusiness('wiki-fields',events).passed,false);
+ events.at(-1).collection.read.data.fields=snapshot.fields;assert.equal(checkBusiness('wiki-fields',events).passed,true);
+});
+test('真实 Chromium 观察器记录执行边界和耗时，输入不入日志，取消后不新建会话',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'inspire-observer-')),context=join(dir,'context.json'),oldObserver=process.env.INSPIRE_JEV_TEST_OBSERVER,oldContext=process.env.INSPIRE_JEV_ACCEPTANCE_CONTEXT;
+ const server=createServer((q,r)=>{r.setHeader('Content-Type','text/html');r.end('<label>Name<input id="name"></label>');});await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin=`http://127.0.0.1:${server.address().port}`;let agent;
+ try{
+  await exclusiveJSON(context,{entry:'test',id:'observer-test',directory:dir,caseId:'test',packageSHA256:'a'.repeat(64)});process.env.INSPIRE_JEV_TEST_OBSERVER=fileURLToPath(new URL('../scripts/acceptance-observer.mjs',import.meta.url));process.env.INSPIRE_JEV_ACCEPTANCE_CONTEXT=context;
+  const idle=await Agent.create({home:join(dir,'idle'),host:'test',browserProxy:null,modelProxy:null});await assert.rejects(access(join(dir,'observer.jsonl')),{code:'ENOENT'});await idle.close();
+  agent=await Agent.create({home:join(dir,'home'),host:'test',browserProxy:null,modelProxy:null});const session=await agent.call('jev_session',{action:'open',url:origin,allowedOrigins:[origin],headless:true});const view=await agent.call('jev_session',{action:'inspect',sessionId:session.id}),ref=view.page.actions.find(a=>a.kind==='fill').ref;
+  await agent.call('jev_session',{action:'act',sessionId:session.id,ref,value:'SENSITIVE_TEST_TEXT_43'});const events=await readLedger(join(dir,'observer.jsonl'));
+  assert.ok(events.some(e=>e.type==='action'&&e.phase==='issued'));assert.ok(events.some(e=>e.type==='action'&&e.phase==='acknowledged'));assert.ok(events.some(e=>e.type==='tool_end'&&e.durationMs>0));assert.ok(!(await readFile(join(dir,'observer.jsonl'),'utf8')).includes('SENSITIVE_TEST_TEXT_43'));
+  await writeFile(join(dir,'cancel.request'),'cancel');await new Promise(r=>setTimeout(r,1100));assert.equal((await agent.call('jev_session',{action:'open',url:origin,allowedOrigins:[origin],headless:true})).status,'cancelled');
+ }finally{if(oldObserver===undefined)delete process.env.INSPIRE_JEV_TEST_OBSERVER;else process.env.INSPIRE_JEV_TEST_OBSERVER=oldObserver;if(oldContext===undefined)delete process.env.INSPIRE_JEV_ACCEPTANCE_CONTEXT;else process.env.INSPIRE_JEV_ACCEPTANCE_CONTEXT=oldContext;await agent?.close();await new Promise(r=>server.close(r));await rm(dir,{recursive:true,force:true});}
+});
+
+test('字段核验使用最后的完整现场，允许 HTML 日期微格式但不省略业务字段',()=>{
+ const url='https://en.wikipedia.org/wiki/Alan_Turing',fields=['Born actual birth','Education actual education','Known for actual contribution'];
+ const events=[{type:'snapshot',snapshot:{url,heading:'Alan Turing',fields:[]}},{type:'snapshot',snapshot:{url,heading:'Alan Turing',fields}},{type:'action',phase:'issued',kind:'fill',valueHash:hash('Alan Turing')},{type:'tool_end',collection:{url,title:'Alan Turing',fields:['Born actual (1912-06-23) birth',fields[1],fields[2]]}}];
+ assert.equal(checkBusiness('wiki-fields',events).passed,true);events.at(-1).collection.fields.splice(1,1);assert.equal(checkBusiness('wiki-fields',events).passed,false);
+});
+
+test('许可证标签页必须有实际完整 DOM 采集及对应现场，模型声明、截断和错误来源不能通过',()=>{
+ const url='https://github.com/browser-use/jev-ultrafast',licenseURL=url+'?tab=MIT-1-ov-file',readme='r'.repeat(1500),license='MIT License Permission is hereby granted THE SOFTWARE IS PROVIDED OTHER DEALINGS IN THE SOFTWARE.';
+ const read={type:'tool_end',collection:{url,data:{readme}}},receipt={type:'tool_end',collection:{url:licenseURL,data:{license},coverage:{license:{matched:1,returned:1,items:[{truncated:false}]}}}},scene={type:'snapshot',snapshot:{url:licenseURL}};
+ const events=[{type:'snapshot',snapshot:{url,readme}},read,scene,receipt];
+ assert.equal(checkBusiness('github-public',events).passed,true);
+ assert.equal(checkBusiness('github-public',events.slice(0,-1),{finalOutput:{results:{license,source:licenseURL}}}).passed,false);
+ assert.equal(checkBusiness('github-public',events.filter(e=>e!==scene)).passed,false);
+ receipt.collection.coverage.license.items[0].truncated=true;assert.equal(checkBusiness('github-public',events).passed,false);
+ receipt.collection.coverage.license.items[0].truncated=false;receipt.collection.data.license=license.replace('OTHER DEALINGS IN THE SOFTWARE.','');assert.equal(checkBusiness('github-public',events).passed,false);
+ receipt.collection.data.license=license;receipt.collection.url=licenseURL.replace('browser-use/jev-ultrafast','other/repo');assert.equal(checkBusiness('github-public',events).passed,false);
+});

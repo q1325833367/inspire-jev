@@ -2,7 +2,7 @@ import {createHash,randomUUID} from 'node:crypto';
 import {capturePage,probeTarget,checkPage,extractPage} from './snapshot.mjs';
 import {traceStep} from './trace.mjs';
 
-export function browserAdapter(tab,{browserId='iab',driver='desktop',instanceId='desktop',sessionId,allowedOrigins,trace,onAction,checkExtra,navigationState}={}) {
+export function browserAdapter(tab,{browserId='iab',driver='desktop',instanceId='desktop',sessionId,allowedOrigins,trace,onAction,onExecution,checkExtra,navigationState}={}) {
   const span=(name,data,work,summary)=>traceStep(api.trace,name,data,work,summary);
   const history=[...(navigationState?.urls||[])];let historyIndex=navigationState?.index??-1,backPending=false,nextCursor=null,lastPage,registry=new Map(),siteTools;
   const owned=driver==='playwright';
@@ -85,7 +85,7 @@ export function browserAdapter(tab,{browserId='iab',driver='desktop',instanceId=
       api.trace?.addSecrets([value]);
       if(!alreadyValidated&&!(await api.validate(action)).ok)throw Error('目标已变化，请重新观测');
       const meta={kind:action.kind,target_ref:api.trace?.ref(action.selector||action.id)},opts=owned?{timeout:3000}:{timeoutMs:3000};
-      let issued=false;const invoke=(operation,work)=>span(operation,meta,()=>{if(signal?.aborted)throw Object.assign(Error('执行已取消'),{name:'AbortError',notIssued:!issued});issued=true;return work();});
+      let issued=false;const executionId=randomUUID(),valueHash=action.kind==='fill'?createHash('sha256').update(String(value)).digest('hex'):undefined;const invoke=(operation,work)=>span(operation,meta,async()=>{if(signal?.aborted)throw Object.assign(Error('执行已取消'),{name:'AbortError',notIssued:!issued});if(!issued){try{await onExecution?.({phase:'issued',executionId,action,valueHash});}catch(error){error.notIssued=true;throw error;}issued=true;}try{return await work();}catch(error){await onExecution?.({phase:'unknown',executionId,action,errorCode:error.code||error.name});throw error;}});
       if(action.kind==='observe'){await api.expand(lastPage);return;}
       if(action.kind==='wait'){await span('browser.wait',{},()=>new Promise(resolve=>setTimeout(resolve,150)));return;}
       if(action.kind==='back'){backPending=true;await invoke('browser.back',()=>tab.back(action.href));}
@@ -105,7 +105,7 @@ export function browserAdapter(tab,{browserId='iab',driver='desktop',instanceId=
         else throw Error('不支持的操作');
         }finally{if(owned){prepared.delete(action.ref);await l.dispose();}}
       }
-      await onAction?.(action);
+      await onExecution?.({phase:'acknowledged',executionId,action});await onAction?.(action);
     },
     resolveRef(ref){const action=registry.get(ref);if(!action)throw Error('引用已过期；请检查会话获取新鲜引用');return action;},
     publicView(page=lastPage){if(!page)return null;return{...page,actions:page.actions.map(({formGuard,documentId,documentUrl,frameUrl,frameOrigin,...a})=>({...a,...(frameUrl&&frameUrl!==page.frameUrl?{frameUrl,frameOrigin}:{})}))};},
