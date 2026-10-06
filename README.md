@@ -6,7 +6,7 @@
 
 A Jev-powered execution toolkit, starting with browser automation.
 
-[![版本：1.0.0-rc.6](https://img.shields.io/badge/version-1.0.0--rc.6-orange)](https://github.com/q1325833367/inspire-jev/releases)
+[![版本：1.0.0-rc.7](https://img.shields.io/badge/version-1.0.0--rc.6-orange)](https://github.com/q1325833367/inspire-jev/releases)
 [![许可证：MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 InspireJev 让主 Agent 优先通过 Jev 工具连续执行网页交互，适用于搜索筛选、资料采集和表单填写。主 Agent 保留完整目标，负责规划、授权、结果核验与必要接管；Jev 从当前页面实际观测到的候选中选择动作。
@@ -29,7 +29,7 @@ InspireJev 让主 Agent 优先通过 Jev 工具连续执行网页交互，适用
 先安装 Node.js 24 或更高版本，再安装 RC 发布包及 Chromium：
 
 ```sh
-npm install --global https://github.com/q1325833367/inspire-jev/releases/download/v1.0.0-rc.6/inspire-jev-1.0.0-rc.6.tgz
+npm install --global https://github.com/q1325833367/inspire-jev/releases/download/v1.0.0-rc.7/inspire-jev-1.0.0-rc.7.tgz
 npx playwright@1.63.0 install chromium
 inspire-jev setup
 inspire-jev install --entry gpt

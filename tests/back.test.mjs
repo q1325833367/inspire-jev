@@ -25,3 +25,9 @@ test('后退不能绕过目标来源校验',async()=>{
   const result=await run({goal:'返回列表',allowedOrigins:['https://example.test'],subgoals:[{id:'return',goal:'返回列表',checks}],completionChecks:checks},adapter,{decide:async()=>({operation:'BACK',target:'host_back',operationConfidence:1,targetConfidence:1})});
   assert.equal(result.reason,'needs_origin');assert.equal(backs,0);
 });
+
+test('现场被用户改变后旧后退目标失效',async()=>{
+ let url='https://example.test/list';const adapter=browserAdapter({id:'changed-back',url:async()=>url,back:async()=>{},playwright:{evaluate:async()=>({url,actions:[],coverage:{}})}},{driver:'test'});
+ await adapter.observe();url='https://example.test/detail';const observed=await adapter.observe(),back=observed.actions.find(a=>a.kind==='back');assert.equal((await adapter.validate(back)).ok,true);
+ url='https://example.test/user';assert.equal((await adapter.validate(back)).ok,false);
+});

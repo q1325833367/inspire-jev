@@ -91,6 +91,21 @@ test('重启运行时后核对原档案现场，未知提交不会重放',async(
  }finally{await agent?.shutdown();await rm(home,{recursive:true,force:true});await new Promise(r=>server.close(r));}
 });
 
+test('独立浏览器重启后从同一详情续跑，恢复已观测目的地且不重放旧动作',async()=>{
+ const visits=[];const server=createServer((req,res)=>{visits.push({url:req.url,method:req.method});res.setHeader('content-type','text/html');res.end(req.url==='/list'?'<h1>List</h1><a href="/detail">Detail</a>':'<h1>Detail</h1>');});await new Promise(r=>server.listen(0,'127.0.0.1',r));
+ const origin=`http://127.0.0.1:${server.address().port}`,home=await mkdtemp(join(tmpdir(),'jev-navigation-')),id=randomUUID(),c=new AbortController();let agent;
+ const services={decide:async()=>{throw Error('唯一匹配已知地址无需模型');}};
+ try{
+  agent=await Agent.create({home,host:'navigation',modelProxy:null,browserProxy:null,services});const session=await agent.sessions.open({sessionId:id,url:origin+'/list',allowedOrigins:[origin],headless:true});
+  const task={sessionId:id,requestId:randomUUID(),goal:'打开详情后返回列表',allowedOrigins:[origin],subgoals:[{id:'detail',goal:'打开详情',checks:[{kind:'url',equals:origin+'/detail'}]},{id:'return',goal:'返回列表',allowedKinds:['back'],checks:[{kind:'url',equals:origin+'/list'}]}],completionChecks:[{kind:'evidence',subgoal:'detail'},{kind:'evidence',subgoal:'return'}]};
+  const stopped=await agent.start(task,{signal:c.signal,onProgress:({completed})=>{if(completed==='detail')c.abort();}});assert.equal(stopped.status,'cancelled');assert.equal(stopped.actions,1);
+  await agent.shutdown();const before=visits.filter(v=>v.url==='/list').length;
+  agent=await Agent.create({home,host:'navigation',modelProxy:null,browserProxy:null,services});await agent.sessions.open({sessionId:id,profileId:session.profileId,url:origin+'/detail',allowedOrigins:[origin],headless:true});
+  assert.equal(visits.filter(v=>v.url==='/list').length,before);assert.equal((await agent.continue(stopped.runId)).reason,'session_reattach_required');
+  const done=await agent.continue(stopped.runId,{reattach:true});assert.equal(done.status,'verified');assert.equal(done.actions,2);assert.equal(done.url,origin+'/list');assert.equal(visits.filter(v=>v.url==='/list').length,before+1);assert.ok(visits.every(v=>v.method==='GET'));
+ }finally{await agent?.shutdown();await rm(home,{recursive:true,force:true});await new Promise(r=>server.close(r));}
+});
+
 test('网页诱导的跨来源表单提交在发送前拒绝，登录字段不进入候选',async()=>fixture('<form action="https://example.com/steal" method="post" onsubmit="event.preventDefault();document.querySelector(\'output\').textContent=\'已发送\'"><button>提交</button></form><form><label>账号<input name="username" value="私密账号"></label><input type="password" value="私密口令"></form><output>未发送</output>',async({adapter,origin,page})=>{
  const observed=await adapter.observe();assert.ok(!observed.actions.some(a=>a.kind==='fill'));assert.ok(observed.coverage.loginForms>0);assert.ok(!JSON.stringify(adapter.publicView(observed)).includes('私密账号'));const t=task(origin,[{kind:'elementText',selector:'output',equals:'已发送'}]);t.subgoals[0].allowSubmit=true;
  const r=await run(t,adapter,{decide:async({page})=>({operation:'CLICK',target:page.actions.find(a=>a.label==='提交').id,operationConfidence:1,targetConfidence:1})});assert.equal(r.reason,'needs_origin');assert.equal(r.actions,0);assert.equal(await page.locator('output').textContent(),'未发送');
