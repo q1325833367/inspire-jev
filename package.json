@@ -1,6 +1,6 @@
 {
   "name": "inspire-jev",
-  "version": "1.0.0-rc.4",
+  "version": "1.0.0-rc.6",
   "description": "A Jev-powered execution toolkit, starting with browser automation.",
   "type": "module",
   "engines": {
@@ -22,6 +22,7 @@
     "integrations",
     "scripts/install.mjs",
     "scripts/codex-rpc.mjs",
+    "scripts/linux-sandbox.mjs",
     "skills",
     "plugin.json",
     "mcp.json",

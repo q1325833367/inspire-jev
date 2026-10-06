@@ -32,7 +32,9 @@ export class Sessions {
       if(url)await page.goto(url,{waitUntil:'domcontentloaded',timeout:20000});
       record.lastUrl=page.url();await this.store.write('sessions',id,record);
       return this.info(id);
-    }catch(e){await context?.close().catch(()=>{});this.opened.delete(id);await release();throw e;}
+    }catch(e){await context?.close().catch(()=>{});this.opened.delete(id);await release();
+      if(process.platform==='linux'&&/No usable sandbox|Chromium sandboxing failed/i.test(e.message))throw Object.assign(Error('Linux 沙箱不可用；请按安装文档配置指定 Chromium 的 AppArmor 规则'),{code:'BROWSER_SANDBOX_UNAVAILABLE'});
+      throw e;}
   }
   bindDesktop(tab,options={}){
     const id=options.sessionId||randomUUID();const adapter=browserAdapter(tab,{...options,driver:'desktop',sessionId:id});
