@@ -11,7 +11,7 @@ export async function sourceDigest(root){
     let rows;
     try{rows=await readdir(join(root,path),{withFileTypes:true});}
     catch(error){
-      if(error.code==='ENOTDIR'){hash.update(path+'\0');hash.update(await readFile(join(root,path)));return;}
+      if(error.code==='ENOTDIR'){hash.update(path.replaceAll('\\','/')+'\0');hash.update(await readFile(join(root,path)));return;}
       if(error.code==='ENOENT')return;
       throw error;
     }
