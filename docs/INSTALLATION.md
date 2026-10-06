@@ -32,7 +32,7 @@ inspire-jev install --entry mcp
 
 `--entry all` 安装已存在的 GPT/Pi 宿主和通用 MCP。各入口指向同版核心，不复制浏览器登录态。
 
-- GPT 插件：需要本机可用的 Codex CLI。安装本地插件后，在桌面宿主确认启用 MCP 并刷新插件；新工具未出现时重启宿主。当前版本使用独立受控浏览器，侧栏路径按兼容矩阵记录。
+- GPT 插件：需要本机可用的 Codex CLI。安装器注册本地技能插件与固定 `gpt` 身份的 `inspire-jev-desktop` stdio MCP 连接，在桌面宿主启用连接并加载新对话；新工具未出现时重启宿主。当前版本使用独立受控浏览器，侧栏路径按兼容矩阵记录。
 - Pi 扩展：需要已安装 Pi；扩展通过原生 `pi install` 注册。重开 Pi 或加载扩展后使用五个 `jev_*` 工具，主模型仍由 Pi 配置。
 - MCP：生成私密目录中的 `mcp-client.json`。将 `mcpServers` 内容合并到客户端原生配置；有 Codex CLI 时同时注册 `inspire-jev-cli`。服务使用 Node 绝对路径和版本化脚本，不依赖 Unix 启动脚本。
 

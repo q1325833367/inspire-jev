@@ -17,7 +17,7 @@ export async function collectNetwork(agent,directory){
  try{
   const page=agent.sessions.get(session.id).page;if(new URL(page.url()).origin!=='https://www.gutenberg.org')throw Error('公开网站代理观测失败');
   const services=await agent.services();let model;
-  try{model=await services.decide({page:{url:page.url(),title:'network preflight',text:'Read-only connection diagnostic',actions:[{id:'diagnostic',kind:'click',label:'Read-only diagnostic candidate'}]},step:{id:'network',goal:'Select the diagnostic candidate; nothing will execute.'},recent:[]},AbortSignal.timeout(30000));}finally{await services.close?.();}
+  try{model=await services.decide({page:{url:page.url(),title:'network preflight',text:'Read-only connection diagnostic',actions:[{id:'diagnostic',kind:'click',label:'Read-only diagnostic candidate'}]},step:{id:'network',goal:'Select the diagnostic candidate; nothing will execute.'},recent:[]},AbortSignal.timeout(30000));}finally{await services.close?.();agent.serviceSets.delete(services);}
   if(!model.model)throw Error('模型接口未返回实际版本');
   return await emit({type:'network',platform:process.platform,arch:process.arch,defaultRouteInterface:route,configuredInterfaces:Object.keys(networkInterfaces()),modelProxy:agent.config.modelProxy||'direct',browserProxy:agent.config.browserProxy||'direct',observedPublicOrigin:new URL(page.url()).origin,model:model.model,usage:model.usage,modelLatencyMs:model.latency_ms});
  }finally{await agent.call('jev_session',{action:'close',sessionId:session.id});}
