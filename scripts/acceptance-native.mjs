@@ -50,7 +50,7 @@ export async function runNative(job,settings){
  lines.on('line',line=>{let event;try{event=JSON.parse(line);}catch{return;}for(const row of normalizeNative(job.entry,event,state))writes=writes.then(()=>emit(row));});
  let diagnosticBytes=0;child.stderr.on('data',chunk=>{diagnosticBytes+=chunk.length;});
  let grace;const timeout=setTimeout(async()=>{await writeFile(join(job.directory,'cancel.request'),'host timeout\n',{flag:'wx',mode:0o600}).catch(()=>{});await emit({type:'host_timeout',cancellationRequested:true});grace=setTimeout(()=>child.kill('SIGINT'),90000);grace.unref();},job.long?1800000:300000);timeout.unref();
- const exitCode=await new Promise((resolve,reject)=>{child.on('error',reject);child.on('exit',resolve);});clearTimeout(timeout);clearTimeout(grace);await writes;
+ const exitCode=await new Promise((resolve,reject)=>{child.on('error',reject);child.on('close',resolve);});clearTimeout(timeout);clearTimeout(grace);await writes;
  if(job.caseId==='github-private-draft'&&state.final)delete state.final.results;
  await emit({type:'native_final',...state.final});await emit({type:'native_end',exitCode,diagnosticBytes});return{status:exitCode===0?'finished':'failed',jobId:job.id,exitCode};
 }

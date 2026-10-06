@@ -1,6 +1,6 @@
 import {randomUUID} from 'node:crypto';
 import {join} from 'node:path';
-import {access} from 'node:fs/promises';
+import {access,readFile} from 'node:fs/promises';
 import {ledger,json,hash} from './acceptance-evidence.mjs';
 import {pathToFileURL} from 'node:url';
 
@@ -38,7 +38,7 @@ export async function createObserver(agent){
  return{
   signal:controller.signal,
   async nativeTools(names){await emit({type:'native_tools',names});},
-  async beforeTool(name,args){const ticket={id:randomUUID(),start:performance.now()};await emit({type:'tool_start',callId:ticket.id,name,action:args.action,argsHash:hash(args),sessionId:args.sessionId||args.task?.sessionId,runId:args.runId});return ticket;},
+  async beforeTool(name,args){if(name==='jev_session'&&args.action==='close'&&context.caseId!=='github-private-draft'){const session=sessions.get(args.sessionId);if(session&&!session.page.isClosed()){const path=join(context.directory,'final-'+args.sessionId+'.png');await session.page.screenshot({path,fullPage:false,mask:[session.page.locator('header,.AppHeader,[data-testid="user-menu"]')]}).catch(()=>{});try{await emit({type:'screenshot',sessionId:args.sessionId,file:path,sha256:hash(await readFile(path))});}catch{}}}const ticket={id:randomUUID(),start:performance.now()};await emit({type:'tool_start',callId:ticket.id,name,action:args.action,argsHash:hash(args),sessionId:args.sessionId||args.task?.sessionId,runId:args.runId});return ticket;},
   async afterTool(ticket,name,args,result){const normalized=Array.isArray(result)?{sessions:result}:result;await emit({type:'tool_end',callId:ticket.id,name,resultHash:hash(normalized),durationMs:performance.now()-ticket.start,status:result?.status,reason:result?.reason,runId:result?.runId,actions:result?.actions,handoffs:result?.handoffs,versions:result?.versions,actionId:result?.actionId,effect:result?.effect,metrics:result?.metrics,textGeneration:result?.textGeneration,collection:context.caseId==='github-private-draft'?undefined:result?.data});for(const id of sessions.keys())await capture(id);},
   async toolError(ticket,name,error){await emit({type:'tool_error',callId:ticket.id,name,durationMs:performance.now()-ticket.start,errorCode:error.code||error.name});},
   async onSession(s){sessions.set(s.record.id,s);s.page.on('request',request=>{if(request.method()!=='POST')return;const u=new URL(request.url());const creation=/\/repositories(?:\/|$)|\/repos(?:\/|$)/.test(u.pathname)||/createRepository/.test(request.postData()||'');emit({type:'request',sessionId:s.record.id,origin:u.origin,path:u.pathname,method:'POST',repositoryCreation:creation}).catch(()=>{});});await emit({type:'session',sessionId:s.record.id,profileId:s.record.profileId,allowedOrigins:s.record.allowedOrigins,physicalIdentity:s.adapter.identity,driver:(await s.adapter.capabilities()).driver,browserVersion:s.context.browser()?.version(),viewport:s.page.viewportSize()});},
