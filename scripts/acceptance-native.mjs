@@ -43,7 +43,10 @@ export function normalizeNative(entry,event,state){
 export async function runNative(job,settings){
  if(job.entry==='gpt')return{status:'queued',reason:'desktop_dispatch',jobId:job.id,promptPath:job.promptPath};
  const emit=await ledger(join(job.directory,'native.jsonl')),state={calls:new Map(),final:null};
- const args=job.entry==='pi'?['--provider',settings.provider,'--model',settings.model,'--thinking',settings.reasoning||'high','--mode','json','--print','--no-session','--no-context-files','--no-extensions','--extension',settings.extension,'--skill',settings.skill]:['exec','--json','--ephemeral','--skip-git-repo-check','--model',settings.model,'--cd',job.directory,...(settings.args||[]),'-'];
+ const toml=v=>typeof v==='boolean'?String(v):Array.isArray(v)?'['+v.map(toml).join(',')+']':v&&typeof v==='object'?'{'+Object.entries(v).map(([k,v])=>k+'='+toml(v)).join(',')+'}':JSON.stringify(v);
+ const overrides={...settings.config};if(settings.mcp)overrides[`mcp_servers.${settings.mcp.name}.env`]={...settings.mcp.env,INSPIRE_JEV_ACCEPTANCE_CONTEXT:job.contextPath};
+ const configArgs=Object.entries(overrides).flatMap(([key,value])=>['-c',key+'='+toml(value)]);
+ const args=job.entry==='pi'?['--provider',settings.provider,'--model',settings.model,'--thinking',settings.reasoning||'high','--mode','json','--print','--no-session','--no-context-files','--no-extensions','--extension',settings.extension,'--skill',settings.skill]:['exec','--json','--ephemeral','--skip-git-repo-check','--model',settings.model,'--cd',job.directory,...configArgs,...(settings.args||[]),'-'];
  const child=spawn(settings.command,[...(settings.commandArgs||[]),...args],{cwd:job.directory,env:{...process.env,...settings.env,INSPIRE_JEV_TEST_OBSERVER:settings.observer,INSPIRE_JEV_ACCEPTANCE_CONTEXT:job.contextPath},stdio:['pipe','pipe','pipe']});
  await emit({type:'native_start',backend:job.entry,jobId:job.id,model:settings.model,provider:settings.provider,reasoning:settings.reasoning,nativeToolsAvailable:settings.nativeToolsAvailable===true,commandVersion:settings.commandVersion});
  child.stdin.end(await readFile(job.promptPath));let writes=Promise.resolve();const lines=createInterface({input:child.stdout});
