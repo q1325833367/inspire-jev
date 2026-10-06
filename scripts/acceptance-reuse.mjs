@@ -1,4 +1,4 @@
-import{readFile,realpath}from'node:fs/promises';
+import{readFile}from'node:fs/promises';
 import{resolve,join}from'node:path';
 import{hash,json}from'./acceptance-evidence.mjs';
 
@@ -13,7 +13,10 @@ async function bind(source,candidate){
  if(source.id){
   if(!/^(gpt|pi|codex-cli|platform)\/[A-Za-z0-9_/-]+$/.test(source.id)||source.id.includes('..'))throw Error('原任务编号无效');
   const directory=join(root,'jobs',source.id);paths.context=join(directory,'context.json');job=await json(paths.context);
-  if(job.id!==source.id||job.protocolHash!==protocolHash||job.packageSHA256!==candidate.sha256||await realpath(job.directory)!==await realpath(directory))throw Error('原任务身份不一致');
+  if(job.id!==source.id||job.protocolHash!==protocolHash||job.packageSHA256!==candidate.sha256)throw Error('原任务身份不一致');
+  // Transported Windows/Linux receipts retain the guest context verbatim.
+  // Read evidence only from the constrained local archive, never its guest path.
+  job={...job,directory};
   paths.native=join(directory,'native.jsonl');paths.observer=join(directory,'observer.jsonl');paths.prompt=join(directory,'prompt.txt');
  }
  if(source.journal){if(!/^(platform|lifecycle)\/(macos-arm64|windows-arm64|linux-arm64)\/(platform|lifecycle)\.jsonl$/.test(source.journal))throw Error('平台证据路径无效');paths.journal=join(root,source.journal);}
