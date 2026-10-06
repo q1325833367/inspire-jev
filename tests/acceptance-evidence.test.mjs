@@ -25,6 +25,15 @@ test('原生事件归一化保留实际参数与结果摘要，丢弃输入实�
  assert.equal(events[0].argsHash,hash(args));assert.equal(events[0].resultHash,hash(result));assert.ok(!JSON.stringify(events).includes(value));
  assert.equal(normalizeNative('pi',{type:'message_end',message:{role:'user',content:[{type:'text',text:value}]}},state).length,0);
 });
+test('Pi 数组列表与 MCP 对象列表使用同一证据摘要，内容变化仍可辨别',()=>{
+ const state={calls:new Map()},args={action:'list'},sessions=[{id:'session-a',status:'closed'}];
+ normalizeNative('pi',{type:'tool_execution_start',toolCallId:'list',toolName:'jev_session',args},state);
+ const event=value=>({type:'tool_execution_end',toolCallId:'list',result:{details:{result:value}}});
+ const array=normalizeNative('pi',event(sessions),state)[0],object=normalizeNative('pi',event({sessions}),state)[0];
+ assert.equal(array.resultHash,object.resultHash);assert.equal(array.resultHash,hash({sessions}));assert.equal(array.argsHash,hash(args));
+ assert.notEqual(normalizeNative('pi',event([{id:'session-b',status:'closed'}]),state)[0].resultHash,array.resultHash);
+ assert.equal(normalizeNative('pi',event([]),state)[0].resultHash,hash({sessions:[]}));
+});
 test('只看见正确网页但没有主模型收到的字段，独立检查不能通过',()=>{
  const url='https://en.wikipedia.org/wiki/Alan_Turing',snapshot={url,heading:'Alan Turing',fields:['Born actual birth','Education actual education','Known for actual contribution']};
  const events=[{type:'snapshot',snapshot},{type:'action',phase:'issued',kind:'fill',valueHash:hash('Alan Turing')}];

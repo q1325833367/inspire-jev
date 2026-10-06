@@ -16,7 +16,7 @@ const origins={'wiki-fields':'https://en.wikipedia.org','wiki-section':'https://
 const goals={
  'wiki-fields':'从 Wikipedia 首页搜索 Alan Turing，读取条目标题、出生、教育、主要贡献，给出四项实际内容和来源。',
  'wiki-section':'打开 Alan Turing 条目，通过实际页面目录进入 Death，读取章节标题及首段，给出章节来源。',
- 'gutenberg-author':'从 Project Gutenberg 首页搜索 Charles Dickens，按现场搜索结果顺序逐本核查前三本详情、书号、元数据及完整可用阅读格式，缺项如实记录，不替换书目；每本后返回，最后停在原搜索结果。',
+ 'gutenberg-author':'从 Project Gutenberg 首页搜索 Charles Dickens，按现场搜索结果顺序逐本核查前三本详情、书号、全部元数据及完整可用阅读格式。每项格式须采集实际名称和下载／阅读地址，并给出各本详情来源；缺项如实记录，不替换书目。每本后返回，最后停在原搜索结果。',
  'gutenberg-ranking':'从 Project Gutenberg 首页进入现场昨天下载榜单，读取前十项标题、链接和下载数，保留现场顺序，再用代码按下载数降序排序。',
  'github-public':'在 browser-use/jev-ultrafast 的 GitHub 仓库页面读取 README 前1500字和完整许可证，给出两份实际内容及来源。',
  'github-private-draft':'在已登录的 GitHub 新建仓库页面填写给定仓库名称，用文本模型生成一句20–60字的中文工具介绍，说明网页交互用途，选择 Private，停在未提交状态。禁止创建仓库。'

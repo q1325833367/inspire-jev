@@ -5,6 +5,7 @@ import {join} from 'node:path';
 import {ledger,hash,json} from './acceptance-evidence.mjs';
 
 const resultOf=result=>{if(result?.details?.result)return result.details.result;if(result?.structuredContent)return result.structuredContent;for(const part of result?.content||[])if(part.type==='text'){try{return JSON.parse(part.text);}catch{}}return null;};
+const resultHash=result=>result?hash(Array.isArray(result)?{sessions:result}:result):null;
 function finalOf(text){try{const parsed=JSON.parse(text.trim().replace(/^```(?:json)?\s*/,'').replace(/\s*```$/,''));return{completed:typeof parsed.completed==='boolean'?parsed.completed:null,ranking:parsed.ranking,results:parsed.results};}catch{return{completed:null};}}
 
 // Keeps native tool provenance and usage, while discarding prompts, input values and reasoning.
@@ -19,7 +20,7 @@ export function normalizeNative(entry,event,state){
  }else if(entry==='pi'){
   if(event.type==='session')rows.push({type:'native_thread',backend:'pi',threadId:event.id});
   if(event.type==='tool_execution_start')state.calls.set(event.toolCallId,{name:event.toolName,argsHash:hash(event.args)});
-  if(event.type==='tool_execution_end'){const call=state.calls.get(event.toolCallId),result=resultOf(event.result);rows.push({type:'native_tool',callId:event.toolCallId,...call,resultHash:result?hash(result):null,status:event.isError?'error':'completed'});}
+  if(event.type==='tool_execution_end'){const call=state.calls.get(event.toolCallId),result=resultOf(event.result);rows.push({type:'native_tool',callId:event.toolCallId,...call,resultHash:resultHash(result),status:event.isError?'error':'completed'});}
   if(event.type==='message_end'&&event.message?.role==='assistant'){
    const m=event.message;rows.push({type:'native_model',provider:m.provider,model:m.model,usage:m.usage,stopReason:m.stopReason});
    const text=m.content.filter(c=>c.type==='text').map(c=>c.text).join('\n');if(m.stopReason!=='toolUse')state.final=finalOf(text);
