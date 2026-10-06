@@ -25,6 +25,7 @@ export function createServices(config, {trace,proxy} = {}) {
   trace?.addSecrets([config.TYPESAFE_API_KEY,config.LOCAL_JEV_API_KEY,config.TEXT_MODEL_API_KEY]);
   const services = {
     trace,
+    observationLimits:endpoint.provider==='local'?{maxCandidates:36,maxText:1200}:undefined,
     close:()=>Promise.all([dispatcher?.close(),localDispatcher?.close()]),
     async decide({ page, step, recent }, signal) {
       const groups = {};

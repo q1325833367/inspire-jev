@@ -19,7 +19,9 @@
   },
   "files": [
     "src",
-    "integrations",
+    "integrations/pi",
+    "integrations/local-jev/*.py",
+    "integrations/local-jev/requirements-*.txt",
     "scripts/install.mjs",
     "scripts/codex-rpc.mjs",
     "scripts/linux-sandbox.mjs",

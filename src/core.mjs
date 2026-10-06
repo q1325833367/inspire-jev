@@ -114,7 +114,7 @@ async function drive(state, adapter, services, { signal, onProgress, saveCheckpo
   };
   try {
     capabilities = await span('runner.capabilities',{},()=>adapter.capabilities());
-    page = await span('runner.observe.initial',{},()=>adapter.observe());
+    page = await span('runner.observe.initial',{},()=>adapter.observe({limits:services.observationLimits}));
     state.lastUrl=page.url;
     if (!task.allowedOrigins.includes(new URL(page.url).origin)) return handoff('needs_origin', { url: page.url });
     if (state.pending) {
@@ -142,7 +142,7 @@ async function drive(state, adapter, services, { signal, onProgress, saveCheckpo
       if (step.hostOnly || step.sensitive || step.checks.some(c=>c.sensitive)) return handoff('host_action_required', { subgoal:step.id });
       const failed=check.details?.filter(d=>!d.ok);
       if(failed?.length && failed.every(d=>['elementText','attribute','field','checked','selected'].includes(d.kind)&&d.count>1)) return handoff('ambiguous_check', {subgoal:step.id,evidence:check});
-      page = await span('runner.observe.decision',{},()=>adapter.observe({frame:step.checks.find(c=>c.frame)?.frame}));state.lastUrl=page.url;
+      page = await span('runner.observe.decision',{},()=>adapter.observe({frame:step.checks.find(c=>c.frame)?.frame,limits:services.observationLimits}));state.lastUrl=page.url;
       if(page.coverage?.loginForms&&/(?:^|\/)(?:login|signin|sign-in)(?:\/|$)/i.test(new URL(page.url).pathname))return handoff('manual_login_required',{url:page.url});
       if (!task.allowedOrigins.includes(new URL(page.url).origin)) return handoff('needs_origin', { url: page.url });
       const remainingMs = Math.min(task.budget.maxDurationMs - clock(), task.budget.sliceMs - (performance.now() - began));
@@ -203,7 +203,7 @@ async function drive(state, adapter, services, { signal, onProgress, saveCheckpo
       }
       if (action.kind === 'check') value = step.checked ?? task.inputs?.[action.label] ?? step.checks.find(c=>c.kind==='checked'&&c.label===action.label)?.equals ?? !action.checked;
       trace?.addSecrets([action.kind==='fill'?value:undefined]);
-      const fresh = adapter.validate?null:await span('runner.observe.freshness',{},()=>adapter.observe());
+      const fresh = adapter.validate?null:await span('runner.observe.freshness',{},()=>adapter.observe({limits:services.observationLimits}));
       const current = adapter.validate?action:fresh.actions.find(a => a.kind===action.kind && a.selector===action.selector &&
         (a.kind!=='select'||a.value===action.value) && (a.kind!=='scroll'||a.region===action.region&&a.direction===action.direction));
       const targetGuard = a => a && JSON.stringify([a.kind,a.selector,a.label,a.role,a.href,a.value,a.current_value,a.checked,a.context]);
@@ -229,7 +229,7 @@ async function drive(state, adapter, services, { signal, onProgress, saveCheckpo
       await span('runner.action.execute',{action_id:entry.id,kind:action.kind,decision_source:entry.decisionSource},()=>adapter.execute(action, value, { signal: localSignal,alreadyValidated:!!adapter.validate }));
       entry.phase='acknowledged';entry.acknowledgedAt=new Date().toISOString();state.pending.phase='acknowledged';
       if (signal?.aborted) return result('cancelled', 'user_cancelled');
-      let after = await span('runner.observe.after_action',{action_id:entry.id},()=>adapter.observe());
+      let after = await span('runner.observe.after_action',{action_id:entry.id},()=>adapter.observe({limits:services.observationLimits}));
       let outcome = await span('runner.check.outcome',{action_id:entry.id},()=>adapter.check(step.checks),r=>({ok:r.ok}));
       let effect=outcome.ok?{ok:true}:adapter.checkAction?await adapter.checkAction(intent):{ok:false};
       const awaitsNavigation=action.kind==='click'&&!!action.href||action.kind==='back'||!!intent.effectUrl||action.isSubmit;
@@ -241,7 +241,7 @@ async function drive(state, adapter, services, { signal, onProgress, saveCheckpo
         outcome = await span('runner.check.settled',{action_id:entry.id},()=>adapter.check(step.checks),r=>({ok:r.ok}));
         effect=outcome.ok?{ok:true}:adapter.checkAction?await adapter.checkAction(intent):{ok:false};
       }
-      if(awaitsNavigation)after=await adapter.observe();
+      if(awaitsNavigation)after=await adapter.observe({limits:services.observationLimits});
       entry.effect = outcome.ok||effect.ok ? 'effect_observed' : (awaitsNavigation?'unknown':after.revision !== page.revision ? 'state_changed' : 'no_change');
       trace?.event('effect','runner.action.effect',{effect:entry.effect},{action_id:entry.id});
       page = after;
