@@ -11,3 +11,6 @@ local-config.json
 *.pem
 *.key
 .DS_Store
+__pycache__/
+*.pyc
+.venv*/
