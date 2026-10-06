@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,readFile,writeFile,rm} from 'node:fs/promises';
+import {mkdtemp,readFile,writeFile,rm,access} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -37,6 +37,7 @@ test('真实 Chromium 观察器记录执行边界和耗时，输入不入日志�
  const server=createServer((q,r)=>{r.setHeader('Content-Type','text/html');r.end('<label>Name<input id="name"></label>');});await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin=`http://127.0.0.1:${server.address().port}`;let agent;
  try{
   await exclusiveJSON(context,{entry:'test',id:'observer-test',directory:dir,caseId:'test',packageSHA256:'a'.repeat(64)});process.env.INSPIRE_JEV_TEST_OBSERVER=fileURLToPath(new URL('../scripts/acceptance-observer.mjs',import.meta.url));process.env.INSPIRE_JEV_ACCEPTANCE_CONTEXT=context;
+  const idle=await Agent.create({home:join(dir,'idle'),host:'test',browserProxy:null,modelProxy:null});await assert.rejects(access(join(dir,'observer.jsonl')),{code:'ENOENT'});await idle.close();
   agent=await Agent.create({home:join(dir,'home'),host:'test',browserProxy:null,modelProxy:null});const session=await agent.call('jev_session',{action:'open',url:origin,allowedOrigins:[origin],headless:true});const view=await agent.call('jev_session',{action:'inspect',sessionId:session.id}),ref=view.page.actions.find(a=>a.kind==='fill').ref;
   await agent.call('jev_session',{action:'act',sessionId:session.id,ref,value:'SENSITIVE_TEST_TEXT_43'});const events=await readLedger(join(dir,'observer.jsonl'));
   assert.ok(events.some(e=>e.type==='action'&&e.phase==='issued'));assert.ok(events.some(e=>e.type==='action'&&e.phase==='acknowledged'));assert.ok(events.some(e=>e.type==='tool_end'&&e.durationMs>0));assert.ok(!(await readFile(join(dir,'observer.jsonl'),'utf8')).includes('SENSITIVE_TEST_TEXT_43'));

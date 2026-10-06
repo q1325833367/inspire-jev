@@ -8,6 +8,7 @@ import {ledger,json,hash} from './acceptance-evidence.mjs';
 const spec=await json(process.argv[2]),directory=resolve(spec.directory),home=join(directory,'home');await mkdir(directory,{recursive:true,mode:0o700});
 const emit=await ledger(join(directory,'lifecycle.jsonl')),cli=root=>join(root,'src','cli.mjs');
 const env={...process.env,INSPIRE_JEV_HOME:home,INSPIRE_JEV_DISPATCHED:'1',CODEX_HOME:join(directory,'codex'),PI_CODING_AGENT_DIR:join(directory,'pi'),INSPIRE_JEV_TEST_OBSERVER:'',INSPIRE_JEV_ACCEPTANCE_CONTEXT:''};
+await mkdir(env.CODEX_HOME,{recursive:true,mode:0o700});await mkdir(env.PI_CODING_AGENT_DIR,{recursive:true,mode:0o700});
 await emit({type:'platform',platform:spec.platform,protocolHash:spec.protocolHash,packageSHA256:spec.packageSHA256,producerSHA256:hash(await readFile(new URL(import.meta.url))),node:process.version,arch:process.arch});
 async function command(root,args,input){
  const child=spawn(process.execPath,[cli(root),...args],{env,cwd:directory,stdio:['pipe','pipe','pipe']});let stdout='',diagnosticBytes=0;child.stdout.on('data',c=>stdout+=c);child.stderr.on('data',c=>diagnosticBytes+=c.length);child.stdin.end(input||'');const exitCode=await new Promise((r,j)=>{child.on('error',j);child.on('close',r);});assert.equal(exitCode,0,JSON.stringify({operation:args[0],exitCode,diagnosticBytes}));

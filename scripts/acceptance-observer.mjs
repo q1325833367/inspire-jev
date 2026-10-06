@@ -6,20 +6,21 @@ import {pathToFileURL} from 'node:url';
 
 // Test-only observer. It never adds tools or returns its observations to the model.
 export async function createObserver(agent){
- const context=await json(process.env.INSPIRE_JEV_ACCEPTANCE_CONTEXT),{toolDefinitions,toolJSONSchema}=await import(context.runtimeRoot?pathToFileURL(join(context.runtimeRoot,'src','tools.mjs')).href:new URL('../src/tools.mjs',import.meta.url).href),emit=await ledger(join(context.directory,'observer.jsonl'));
+ const context=await json(process.env.INSPIRE_JEV_ACCEPTANCE_CONTEXT),{toolDefinitions,toolJSONSchema}=await import(context.runtimeRoot?pathToFileURL(join(context.runtimeRoot,'src','tools.mjs')).href:new URL('../src/tools.mjs',import.meta.url).href);
  if(context.entry!==agent.config.host)throw Error('验收观察器与宿主身份不一致');
- await emit({type:'runtime',jobId:context.id,protocolHash:context.protocolHash,packageSHA256:context.packageSHA256,engine:agent.config.version,buildFingerprint:agent.config.buildFingerprint,host:agent.config.host,toolFingerprint:hash(toolDefinitions.map(d=>({name:d.name,schema:toolJSONSchema(d)}))),pid:process.pid,platform:process.platform,arch:process.arch});
+ const runtime={type:'runtime',jobId:context.id,protocolHash:context.protocolHash,packageSHA256:context.packageSHA256,engine:agent.config.version,buildFingerprint:agent.config.buildFingerprint,host:agent.config.host,toolFingerprint:hash(toolDefinitions.map(d=>({name:d.name,schema:toolJSONSchema(d)}))),pid:process.pid,platform:process.platform,arch:process.arch};
+ let ready;const emit=async event=>{ready ||= ledger(join(context.directory,'observer.jsonl')).then(async writer=>{await writer(runtime);return writer;});return(await ready)(event);};
  const sessions=new Map();
  const controller=new AbortController(),timer=setInterval(()=>access(join(context.directory,'cancel.request')).then(()=>controller.abort()).catch(()=>{}),1000);timer.unref();
  async function capture(sessionId){
   const s=sessions.get(sessionId);if(!s||s.page.isClosed())return;
   const origin=new URL(s.page.url()).origin;if(!s.record.allowedOrigins.includes(origin))return;
   const snapshot=await s.page.evaluate(({caseId,expectedNameHash})=>{
-   const text=s=>document.querySelector(s)?.textContent?.replace(/\s+/g,' ').trim()||'',items=(s,n=40)=>Array.from(document.querySelectorAll(s)).slice(0,n).map(e=>({text:e.textContent.replace(/\s+/g,' ').trim().slice(0,5000),href:e.getAttribute('href')}));
+   const text=s=>document.querySelector(s)?.innerText?.replace(/\s+/g,' ').trim()||'',items=(s,n=40)=>Array.from(document.querySelectorAll(s)).slice(0,n).map(e=>({text:e.innerText.replace(/\s+/g,' ').trim().slice(0,5000),href:e.getAttribute('href')}));
    const base={url:location.href,title:document.title};
    if(location.hostname==='en.wikipedia.org'){
     const heading=document.querySelector('#Death'),container=heading?.closest('.mw-heading')||heading;let p=container?.nextElementSibling;while(p&&p.tagName!=='P'&&!/^H[1-6]$/.test(p.tagName))p=p.nextElementSibling;
-    return{...base,heading:text('#firstHeading'),fields:items('.infobox tr',40).map(x=>x.text),section:text('#Death'),paragraph:p?.tagName==='P'?p.textContent.trim().slice(0,5000):null};
+    return{...base,heading:text('#firstHeading'),fields:items('.infobox tr',40).map(x=>x.text),section:text('#Death'),paragraph:p?.tagName==='P'?p.innerText.trim().slice(0,5000):null};
    }
    if(location.hostname==='www.gutenberg.org')return{...base,heading:text('h1'),search:items('.booklink',3).map(x=>x.text),books:items('.booklink a.link',3),ranking:items('#books-last1 + ol li a',27),metadata:items('table.bibrec tr',40).map(x=>x.text),formats:items('#download a.read-online-button,#download a.featured-format-link,#download a.other-format-link',100),formatCount:document.querySelectorAll('#download a.read-online-button,#download a.featured-format-link,#download a.other-format-link').length};
    if(location.hostname==='github.com'){
