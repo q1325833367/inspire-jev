@@ -16,7 +16,7 @@ export async function secureDirectory(path){
   await mkdir(path,{recursive:true,mode:0o700});
   if(process.platform!=='win32'){await chmod(path,0o700);return;}
   try{await setPrivateACL(path,true);}
-  catch{throw Object.assign(Error('无法设置私密目录的 Windows ACL'),{code:'PRIVATE_PERMISSIONS_ERROR'});}
+  catch(e){throw Object.assign(Error('无法设置私密目录的 Windows ACL',{cause:e}),{code:'PRIVATE_PERMISSIONS_ERROR'});}
 }
 let sidPromise;
 async function windowsUserSID(){
@@ -30,7 +30,7 @@ async function windowsUserSID(){
 export async function secureFile(path){
   if(process.platform!=='win32'){await chmod(path,0o600);return;}
   try{await setPrivateACL(path,false);}
-  catch{throw Object.assign(Error('无法设置凭据文件的 Windows ACL'),{code:'PRIVATE_PERMISSIONS_ERROR'});}
+  catch(e){throw Object.assign(Error('无法设置凭据文件的 Windows ACL',{cause:e}),{code:'PRIVATE_PERMISSIONS_ERROR'});}
 }
 async function setPrivateACL(path,directory){
   const sid=await windowsUserSID(),literal=String(path).replaceAll("'","''");

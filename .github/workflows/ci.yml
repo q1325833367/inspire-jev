@@ -33,6 +33,12 @@ jobs:
       - run: npm run check
       - run: npm run check:secrets -- --history
       - run: npx playwright install --with-deps chromium
+      - name: 为指定 Chromium 保留 Linux 沙箱能力
+        if: runner.os == 'Linux'
+        run: |
+          node scripts/linux-sandbox.mjs > "$RUNNER_TEMP/inspire-jev-browser.profile"
+          sudo install -m 644 "$RUNNER_TEMP/inspire-jev-browser.profile" /etc/apparmor.d/inspire-jev-browser
+          sudo apparmor_parser -r /etc/apparmor.d/inspire-jev-browser
       - run: npm test
       - run: node scripts/platform-smoke.mjs
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
