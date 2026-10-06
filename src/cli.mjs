@@ -5,10 +5,10 @@ import {settings,VERSION} from './config.mjs';
 import {startMCP} from './mcp.mjs';
 import {Store} from './storage.mjs';
 import {createServices} from './providers.mjs';
-import {readCredentials,publicCredentials} from './credentials.mjs';
+import {readCredentials,publicCredentials,decisionEndpoint} from './credentials.mjs';
 import {configure,configCommand} from './setup.mjs';
 import {installEntries,upgrade,rollback,uninstall,dispatchTarget} from './lifecycle.mjs';
-import {ProxyAgent,fetch} from 'undici';
+import {Agent as HTTPAgent,ProxyAgent,fetch} from 'undici';
 import {inspectLock,recoverLock} from './locks.mjs';
 const argv=process.argv.slice(2),command=argv.shift()||'help';
 const flag=name=>{const i=argv.indexOf(`--${name}`);return i<0?undefined:argv[i+1];};
@@ -32,11 +32,12 @@ try{
  else if(command==='uninstall')out(await uninstall({entry:flag('entry')||'all'}));
  else if(command==='doctor'){
   const c=await settings(),values=await readCredentials(c.envFile,{requireKey:false}),checks={node:process.version,requiredNode:24,platform:process.platform,architecture:process.arch,home:c.home,models:publicCredentials(values),modelProxy:c.modelProxy,browserProxy:c.browserProxy,trace:c.trace};
-  if(!values.TYPESAFE_API_KEY){checks.configurationError='缺少 TypeSafe key';process.exitCode=1;}
-  for(const [key,url,proxy]of [['modelNetwork',new URL(values.TYPESAFE_BASE_URL).origin,c.modelProxy],['websiteNetwork','https://www.gutenberg.org/',c.browserProxy]]){
-   const dispatcher=proxy?new ProxyAgent(proxy):undefined,began=performance.now();try{const r=await fetch(url,{dispatcher,signal:AbortSignal.timeout(8000)});checks[key]={reachable:true,http:r.status,proxy:proxy||'直连',ms:Math.round(performance.now()-began)};await r.body?.cancel();}catch(e){checks[key]={reachable:false,error:e.cause?.code||e.name,proxy:proxy||'直连',ms:Math.round(performance.now()-began)};process.exitCode=1;}finally{await dispatcher?.close();}
+  const endpoint=decisionEndpoint(values);checks.decisionProvider=endpoint.provider;
+  if(endpoint.provider==='typesafe'&&!endpoint.key){checks.configurationError='缺少 TypeSafe key';process.exitCode=1;}
+  for(const [key,url,proxy]of [['modelNetwork',new URL(endpoint.url).origin,endpoint.provider==='local'?null:c.modelProxy],['websiteNetwork','https://www.gutenberg.org/',c.browserProxy]]){
+   const dispatcher=proxy?new ProxyAgent(proxy):new HTTPAgent(),began=performance.now();try{const r=await fetch(url,{dispatcher,signal:AbortSignal.timeout(8000)});checks[key]={reachable:true,http:r.status,proxy:proxy||'直连',ms:Math.round(performance.now()-began)};await r.body?.cancel();}catch(e){checks[key]={reachable:false,error:e.cause?.code||e.name,proxy:proxy||'直连',ms:Math.round(performance.now()-began)};process.exitCode=1;}finally{await dispatcher?.close();}
   }
-  if(argv.includes('--models')&&values.TYPESAFE_API_KEY){const s=createServices(values,{proxy:c.modelProxy});try{
+  if(argv.includes('--models')&&(endpoint.provider==='local'||endpoint.key)){const s=createServices(values,{proxy:c.modelProxy});try{
    try{const r=await s.decide({page:{url:'https://www.gutenberg.org/',title:'诊断',text:'诊断网页',actions:[{id:'e1',kind:'click',label:'搜索'}]},step:{id:'diagnostic',goal:'点击搜索'},recent:[]},AbortSignal.timeout(8000));checks.jev={model:r.model,latency_ms:r.latency_ms,usage:r.usage};}catch(e){checks.jev={error:e.code||e.name,message:e.message};process.exitCode=1;}
    if(values.TEXT_MODEL_API_KEY)try{const t=await s.generate({instruction:'为浏览器执行工具生成二十字以内的新中文用途描述',field:{label:'用途描述'},text:'InspireJev 连续执行网页交互'},AbortSignal.timeout(8000));checks.text={model:t.model,latency_ms:t.latency_ms,usage:t.usage};}catch(e){checks.text={error:e.code||e.name,message:e.message};process.exitCode=1;}
   }finally{await s.close();}}

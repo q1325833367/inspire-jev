@@ -1,6 +1,6 @@
 {
   "name": "inspire-jev",
-  "version": "1.0.0",
+  "version": "1.1.0-rc.1",
   "description": "A Jev-powered execution toolkit, starting with browser automation.",
   "type": "module",
   "engines": {
