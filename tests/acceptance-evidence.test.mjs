@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdtemp,readFile,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {createServer} from 'node:http';
 import {ledger,readLedger,exclusiveJSON,hash} from '../scripts/acceptance-evidence.mjs';
 import {normalizeNative} from '../scripts/acceptance-native.mjs';
@@ -35,7 +36,7 @@ test('真实 Chromium 观察器记录执行边界和耗时，输入不入日志�
  const dir=await mkdtemp(join(tmpdir(),'inspire-observer-')),context=join(dir,'context.json'),oldObserver=process.env.INSPIRE_JEV_TEST_OBSERVER,oldContext=process.env.INSPIRE_JEV_ACCEPTANCE_CONTEXT;
  const server=createServer((q,r)=>{r.setHeader('Content-Type','text/html');r.end('<label>Name<input id="name"></label>');});await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin=`http://127.0.0.1:${server.address().port}`;let agent;
  try{
-  await exclusiveJSON(context,{entry:'test',id:'observer-test',directory:dir,caseId:'test',packageSHA256:'a'.repeat(64)});process.env.INSPIRE_JEV_TEST_OBSERVER=new URL('../scripts/acceptance-observer.mjs',import.meta.url).pathname;process.env.INSPIRE_JEV_ACCEPTANCE_CONTEXT=context;
+  await exclusiveJSON(context,{entry:'test',id:'observer-test',directory:dir,caseId:'test',packageSHA256:'a'.repeat(64)});process.env.INSPIRE_JEV_TEST_OBSERVER=fileURLToPath(new URL('../scripts/acceptance-observer.mjs',import.meta.url));process.env.INSPIRE_JEV_ACCEPTANCE_CONTEXT=context;
   agent=await Agent.create({home:join(dir,'home'),host:'test',browserProxy:null,modelProxy:null});const session=await agent.call('jev_session',{action:'open',url:origin,allowedOrigins:[origin],headless:true});const view=await agent.call('jev_session',{action:'inspect',sessionId:session.id}),ref=view.page.actions.find(a=>a.kind==='fill').ref;
   await agent.call('jev_session',{action:'act',sessionId:session.id,ref,value:'SENSITIVE_TEST_TEXT_43'});const events=await readLedger(join(dir,'observer.jsonl'));
   assert.ok(events.some(e=>e.type==='action'&&e.phase==='issued'));assert.ok(events.some(e=>e.type==='action'&&e.phase==='acknowledged'));assert.ok(events.some(e=>e.type==='tool_end'&&e.durationMs>0));assert.ok(!(await readFile(join(dir,'observer.jsonl'),'utf8')).includes('SENSITIVE_TEST_TEXT_43'));

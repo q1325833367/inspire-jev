@@ -46,5 +46,5 @@ try{
  }else if(command==='lock'){
   const identity=flag('identity');if(!identity)throw Error('需要 --identity 真实会话身份');out(argv.includes('--recover')?await recoverLock(identity,{inspected:argv.includes('--inspected')}):await inspectLock(identity));
  }else if(command==='version')out({version:VERSION});
- else out({name:'InspireJev',version:VERSION,commands:['setup [--env-file 路径] [--entry gpt|pi|mcp|all]','install --entry gpt|pi|mcp|all','config show|set 名称|unset 名称','doctor [--models]','linux-sandbox-profile','mcp --host gpt|pi|codex-cli|mcp','upgrade --package 路径或固定版本URL','rollback --version 版本','uninstall --entry gpt|pi|mcp|all','cleanup --host 宿主 [--apply]','lock --identity 身份 [--recover --inspected]']});
+ else out({name:'InspireJev',version:VERSION,commands:['setup [--env-file 路径] [--entry gpt|pi|mcp|all]','install --entry gpt|pi|mcp|all [--candidate 编号 --stage-only]' ,'config show|set 名称|unset 名称','doctor [--models]','linux-sandbox-profile','mcp --host gpt|pi|codex-cli|mcp','upgrade --package 路径或固定版本URL','rollback --version 版本','uninstall --entry gpt|pi|mcp|all','cleanup --host 宿主 [--apply]','lock --identity 身份 [--recover --inspected]']});
 }catch(e){process.stderr.write(JSON.stringify({error:e.code||e.name,message:e.message,...(e.details?{details:e.details}:{})})+'\n');process.exitCode=1;}

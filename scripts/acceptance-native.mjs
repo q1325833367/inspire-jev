@@ -44,7 +44,7 @@ export async function runNative(job,settings){
  if(job.entry==='gpt')return{status:'queued',reason:'desktop_dispatch',jobId:job.id,promptPath:job.promptPath};
  const emit=await ledger(join(job.directory,'native.jsonl')),state={calls:new Map(),final:null};
  const args=job.entry==='pi'?['--provider',settings.provider,'--model',settings.model,'--thinking',settings.reasoning||'high','--mode','json','--print','--no-session','--no-context-files','--no-extensions','--extension',settings.extension,'--skill',settings.skill]:['exec','--json','--ephemeral','--skip-git-repo-check','--model',settings.model,'--cd',job.directory,...(settings.args||[]),'-'];
- const child=spawn(settings.command,args,{cwd:job.directory,env:{...process.env,...settings.env,INSPIRE_JEV_TEST_OBSERVER:settings.observer,INSPIRE_JEV_ACCEPTANCE_CONTEXT:job.contextPath},stdio:['pipe','pipe','pipe']});
+ const child=spawn(settings.command,[...(settings.commandArgs||[]),...args],{cwd:job.directory,env:{...process.env,...settings.env,INSPIRE_JEV_TEST_OBSERVER:settings.observer,INSPIRE_JEV_ACCEPTANCE_CONTEXT:job.contextPath},stdio:['pipe','pipe','pipe']});
  await emit({type:'native_start',backend:job.entry,jobId:job.id,model:settings.model,provider:settings.provider,reasoning:settings.reasoning,nativeToolsAvailable:settings.nativeToolsAvailable===true,commandVersion:settings.commandVersion});
  child.stdin.end(await readFile(job.promptPath));let writes=Promise.resolve();const lines=createInterface({input:child.stdout});
  lines.on('line',line=>{let event;try{event=JSON.parse(line);}catch{return;}for(const row of normalizeNative(job.entry,event,state))writes=writes.then(()=>emit(row));});
@@ -55,10 +55,14 @@ export async function runNative(job,settings){
  await emit({type:'native_final',...state.final});await emit({type:'native_end',exitCode,diagnosticBytes});return{status:exitCode===0?'finished':'failed',jobId:job.id,exitCode};
 }
 
-export async function ingestDesktop(job,path,{startedAt,completedAt,nativeToolsAvailable}={}){
+export async function ingestDesktop(job,path,{startedAt,completedAt,durationMs,nativeToolsAvailable}={}){
  const emit=await ledger(join(job.directory,'native.jsonl')),state={calls:new Map(),final:null};
+ const source=await readFile(path,'utf8'),raw=source.split('\n').filter(Boolean).map(JSON.parse);
+ const start=raw.find(e=>e.type==='event_msg'&&e.payload?.type==='task_started'),end=raw.findLast(e=>e.type==='event_msg'&&['task_complete','task_completed'].includes(e.payload?.type));
+ startedAt=Date.parse(start?.timestamp)||startedAt;completedAt=Date.parse(end?.timestamp)||completedAt;durationMs=end?.payload?.duration_ms||durationMs;
+ if(!Number.isFinite(durationMs)||durationMs<=0)throw Error('桌面原生单调时钟耗时缺失');
  await emit({type:'native_start',backend:'desktop',jobId:job.id,startedAt,nativeToolsAvailable:nativeToolsAvailable===true});
  for(const line of (await readFile(path,'utf8')).split('\n').filter(Boolean)){let event;try{event=JSON.parse(line);}catch{continue;}for(const row of normalizeNative('gpt',event,state))await emit(row);}
  if(job.caseId==='github-private-draft'&&state.final)delete state.final.results;
- await emit({type:'native_final',...state.final});await emit({type:'native_end',startedAt,completedAt,durationMs:completedAt-startedAt,exitCode:0,sourceSHA256:hash(await readFile(path))});
+ await emit({type:'native_final',...state.final});await emit({type:'native_end',startedAt,completedAt,durationMs,exitCode:0,sourceSHA256:hash(await readFile(path))});
 }

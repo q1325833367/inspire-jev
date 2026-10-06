@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "inspire-jev",
-  "version": "1.0.0-rc.8",
+  "version": "1.0.0",
   "description": "基于 Jev 的浏览器执行工具，支持连续执行、证据核验、同一现场接管与恢复。",
   "author": {
     "name": "q1325833367",
