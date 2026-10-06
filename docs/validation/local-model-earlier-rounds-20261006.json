@@ -1,0 +1,2367 @@
+{
+  "at": "2026-10-06T09:47:51.340Z",
+  "rounds": [
+    {
+      "id": "r01",
+      "protocol": {
+        "kind": "SDK/执行核心开发对照，非主 Agent 端到端性能",
+        "at": "2026-10-06T09:34:59.715Z",
+        "contextSha256": "11a0d240ea4bcb38aa7f6f3afa2e47ae683e75fbee14dd8d2e035b1850d8c649",
+        "cases": [
+          {
+            "id": "gutenberg-ranking",
+            "url": "https://www.gutenberg.org/",
+            "candidates": 85,
+            "coverage": {
+              "candidateScope": "batch",
+              "scannedNodes": 356,
+              "truncated": false,
+              "offscreen": 55,
+              "hidden": 5,
+              "sensitive": 0,
+              "loginForms": 0,
+              "totalCandidates": 85,
+              "visibleCandidates": 28,
+              "scrollRegions": [
+                {
+                  "selector": null,
+                  "label": "页面",
+                  "y": 0,
+                  "height": 15182,
+                  "viewport": 900,
+                  "x": 640,
+                  "cy": 450
+                }
+              ],
+              "elapsed_ms": 18.699999928474426,
+              "unsupported": {
+                "canvas": 0,
+                "frames": 0
+              }
+            },
+            "gold": {
+              "operation": "CLICK",
+              "targets": [
+                "e12",
+                "e16"
+              ]
+            }
+          },
+          {
+            "id": "books-travel",
+            "url": "https://books.toscrape.com/",
+            "candidates": 113,
+            "coverage": {
+              "candidateScope": "batch",
+              "scannedNodes": 496,
+              "truncated": true,
+              "offscreen": 59,
+              "hidden": 0,
+              "sensitive": 0,
+              "loginForms": 0,
+              "totalCandidates": 113,
+              "visibleCandidates": 51,
+              "scrollRegions": [
+                {
+                  "selector": null,
+                  "label": "页面",
+                  "y": 0,
+                  "height": 2569,
+                  "viewport": 900,
+                  "x": 640,
+                  "cy": 450
+                }
+              ],
+              "elapsed_ms": 4,
+              "unsupported": {
+                "canvas": 0,
+                "frames": 0
+              }
+            },
+            "gold": {
+              "operation": "CLICK",
+              "targets": [
+                "e4"
+              ]
+            }
+          },
+          {
+            "id": "wiki-section",
+            "url": "https://en.wikipedia.org/wiki/Alan_Turing",
+            "candidates": 29,
+            "coverage": {
+              "candidateScope": "batch",
+              "scannedNodes": 500,
+              "truncated": true,
+              "offscreen": 1,
+              "hidden": 84,
+              "sensitive": 0,
+              "loginForms": 0,
+              "totalCandidates": 29,
+              "visibleCandidates": 25,
+              "scrollRegions": [
+                {
+                  "selector": null,
+                  "label": "页面",
+                  "y": 0,
+                  "height": 41429,
+                  "viewport": 900,
+                  "x": 640,
+                  "cy": 450
+                }
+              ],
+              "elapsed_ms": 3.5,
+              "unsupported": {
+                "canvas": 0,
+                "frames": 0
+              }
+            },
+            "gold": {
+              "operation": "CLICK",
+              "targets": [
+                "e17"
+              ]
+            }
+          }
+        ],
+        "repeats": 3,
+        "order": "每次重复轮转 cloud/laya/kev；保留全部失败",
+        "taskBudget": {
+          "totalMs": 90000,
+          "maxActions": 40,
+          "sliceMs": 45000
+        }
+      },
+      "finished": true,
+      "records": [
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 1,
+          "model": "cloud",
+          "ms": 1337.0454999999993,
+          "passed": true,
+          "result": {
+            "operation": "CLICK",
+            "target": "e12",
+            "model": "jev-1.13.0",
+            "latency_ms": 1337,
+            "usage": {
+              "input_tokens": 11098,
+              "output_tokens": 906
+            }
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 1,
+          "model": "laya",
+          "ms": 3776.410749999999,
+          "passed": false,
+          "error": {
+            "code": "MODEL_HTTP_ERROR",
+            "provider": "local",
+            "message": "local 模型接口 HTTP 422"
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 1,
+          "model": "kev",
+          "ms": 2688.349791999999,
+          "passed": false,
+          "result": {
+            "operation": "DONE",
+            "model": "kev-latest",
+            "latency_ms": 2688,
+            "usage": {
+              "input_tokens": 6755,
+              "output_tokens": 1333
+            }
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 1,
+          "model": "cloud",
+          "ms": 963.6155420000014,
+          "passed": true,
+          "result": {
+            "operation": "CLICK",
+            "target": "e4",
+            "model": "jev-1.13.0",
+            "latency_ms": 963,
+            "usage": {
+              "input_tokens": 13741,
+              "output_tokens": 1147
+            }
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 1,
+          "model": "laya",
+          "ms": 6.305207999999766,
+          "passed": false,
+          "error": {
+            "code": "MODEL_HTTP_ERROR",
+            "provider": "local",
+            "message": "local 模型接口 HTTP 413"
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 1,
+          "model": "kev",
+          "ms": 1699.4569159999992,
+          "passed": false,
+          "result": {
+            "operation": "DONE",
+            "model": "kev-latest",
+            "latency_ms": 1699,
+            "usage": {
+              "input_tokens": 8181,
+              "output_tokens": 1672
+            }
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 1,
+          "model": "cloud",
+          "ms": 946.7391659999994,
+          "passed": true,
+          "result": {
+            "operation": "CLICK",
+            "target": "e17",
+            "model": "jev-1.13.0",
+            "latency_ms": 947,
+            "usage": {
+              "input_tokens": 4307,
+              "output_tokens": 427
+            }
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 1,
+          "model": "laya",
+          "ms": 942.5439580000002,
+          "passed": false,
+          "error": {
+            "code": "MODEL_HTTP_ERROR",
+            "provider": "local",
+            "message": "local 模型接口 HTTP 422"
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 1,
+          "model": "kev",
+          "ms": 735.4223749999983,
+          "passed": false,
+          "result": {
+            "operation": "DONE",
+            "model": "kev-latest",
+            "latency_ms": 735,
+            "usage": {
+              "input_tokens": 2544,
+              "output_tokens": 646
+            }
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 2,
+          "model": "laya",
+          "ms": 3494.6040420000027,
+          "passed": false,
+          "error": {
+            "code": "MODEL_HTTP_ERROR",
+            "provider": "local",
+            "message": "local 模型接口 HTTP 422"
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 2,
+          "model": "kev",
+          "ms": 892.1919579999994,
+          "passed": false,
+          "result": {
+            "operation": "DONE",
+            "model": "kev-latest",
+            "latency_ms": 892,
+            "usage": {
+              "input_tokens": 6755,
+              "output_tokens": 1333
+            }
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 2,
+          "model": "cloud",
+          "ms": 1111.174833000001,
+          "passed": true,
+          "result": {
+            "operation": "CLICK",
+            "target": "e12",
+            "model": "jev-1.13.0",
+            "latency_ms": 1111,
+            "usage": {
+              "input_tokens": 11098,
+              "output_tokens": 906
+            }
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 2,
+          "model": "laya",
+          "ms": 4.476957999999286,
+          "passed": false,
+          "error": {
+            "code": "MODEL_HTTP_ERROR",
+            "provider": "local",
+            "message": "local 模型接口 HTTP 413"
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 2,
+          "model": "kev",
+          "ms": 983.8664580000004,
+          "passed": false,
+          "result": {
+            "operation": "DONE",
+            "model": "kev-latest",
+            "latency_ms": 984,
+            "usage": {
+              "input_tokens": 8181,
+              "output_tokens": 1672
+            }
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 2,
+          "model": "cloud",
+          "ms": 982.8804170000003,
+          "passed": true,
+          "result": {
+            "operation": "CLICK",
+            "target": "e4",
+            "model": "jev-1.13.0",
+            "latency_ms": 983,
+            "usage": {
+              "input_tokens": 13741,
+              "output_tokens": 1147
+            }
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 2,
+          "model": "laya",
+          "ms": 824.262749999998,
+          "passed": false,
+          "error": {
+            "code": "MODEL_HTTP_ERROR",
+            "provider": "local",
+            "message": "local 模型接口 HTTP 422"
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 2,
+          "model": "kev",
+          "ms": 296.5962499999987,
+          "passed": false,
+          "result": {
+            "operation": "DONE",
+            "model": "kev-latest",
+            "latency_ms": 297,
+            "usage": {
+              "input_tokens": 2544,
+              "output_tokens": 646
+            }
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 2,
+          "model": "cloud",
+          "ms": 821.0810840000013,
+          "passed": true,
+          "result": {
+            "operation": "CLICK",
+            "target": "e17",
+            "model": "jev-1.13.0",
+            "latency_ms": 821,
+            "usage": {
+              "input_tokens": 4307,
+              "output_tokens": 427
+            }
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 3,
+          "model": "kev",
+          "ms": 558.6961249999986,
+          "passed": false,
+          "result": {
+            "operation": "DONE",
+            "model": "kev-latest",
+            "latency_ms": 559,
+            "usage": {
+              "input_tokens": 6755,
+              "output_tokens": 1333
+            }
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 3,
+          "model": "cloud",
+          "ms": 974.3960000000006,
+          "passed": true,
+          "result": {
+            "operation": "CLICK",
+            "target": "e12",
+            "model": "jev-1.13.0",
+            "latency_ms": 974,
+            "usage": {
+              "input_tokens": 11098,
+              "output_tokens": 906
+            }
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 3,
+          "model": "laya",
+          "ms": 3628.3751249999987,
+          "passed": false,
+          "error": {
+            "code": "MODEL_HTTP_ERROR",
+            "provider": "local",
+            "message": "local 模型接口 HTTP 422"
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 3,
+          "model": "kev",
+          "ms": 852.8358750000043,
+          "passed": false,
+          "result": {
+            "operation": "DONE",
+            "model": "kev-latest",
+            "latency_ms": 853,
+            "usage": {
+              "input_tokens": 8181,
+              "output_tokens": 1672
+            }
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 3,
+          "model": "cloud",
+          "ms": 984.6935419999936,
+          "passed": true,
+          "result": {
+            "operation": "CLICK",
+            "target": "e4",
+            "model": "jev-1.13.0",
+            "latency_ms": 985,
+            "usage": {
+              "input_tokens": 13741,
+              "output_tokens": 1147
+            }
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 3,
+          "model": "laya",
+          "ms": 5.694375000006403,
+          "passed": false,
+          "error": {
+            "code": "MODEL_HTTP_ERROR",
+            "provider": "local",
+            "message": "local 模型接口 HTTP 413"
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 3,
+          "model": "kev",
+          "ms": 199.62933399999747,
+          "passed": false,
+          "result": {
+            "operation": "DONE",
+            "model": "kev-latest",
+            "latency_ms": 199,
+            "usage": {
+              "input_tokens": 2544,
+              "output_tokens": 646
+            }
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 3,
+          "model": "cloud",
+          "ms": 967.3336249999993,
+          "passed": true,
+          "result": {
+            "operation": "CLICK",
+            "target": "e17",
+            "model": "jev-1.13.0",
+            "latency_ms": 967,
+            "usage": {
+              "input_tokens": 4307,
+              "output_tokens": 427
+            }
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 3,
+          "model": "laya",
+          "ms": 819.916541999999,
+          "passed": false,
+          "error": {
+            "code": "MODEL_HTTP_ERROR",
+            "provider": "local",
+            "message": "local 模型接口 HTTP 422"
+          }
+        }
+      ],
+      "runs": [
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 1,
+          "model": "cloud",
+          "ms": 1427.2932500000024,
+          "includingOpenMs": 2462.3274579999998,
+          "passed": true,
+          "status": "verified",
+          "actions": 1,
+          "metrics": {
+            "decision_calls": 1,
+            "text_calls": 0,
+            "models": [
+              "jev-1.13.0"
+            ],
+            "typesafe_input": 11148,
+            "typesafe_output": 906,
+            "text_input": 0,
+            "text_output": 0,
+            "main_model_tokens": null,
+            "total_cost": null
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 1,
+          "model": "laya",
+          "ms": 3851.999082999995,
+          "includingOpenMs": 4873.8214579999985,
+          "passed": false,
+          "status": "handoff",
+          "reason": "runtime_error",
+          "actions": 0,
+          "metrics": {
+            "decision_calls": 0,
+            "text_calls": 0,
+            "models": [],
+            "typesafe_input": 0,
+            "typesafe_output": 0,
+            "text_input": 0,
+            "text_output": 0,
+            "main_model_tokens": null,
+            "total_cost": null
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 1,
+          "model": "kev",
+          "ms": 1209.458832999997,
+          "includingOpenMs": 2242.7777910000004,
+          "passed": false,
+          "status": "handoff",
+          "reason": "done_not_verified",
+          "actions": 0,
+          "metrics": {
+            "decision_calls": 1,
+            "text_calls": 0,
+            "models": [
+              "kev-latest"
+            ],
+            "typesafe_input": 6771,
+            "typesafe_output": 1324,
+            "text_input": 0,
+            "text_output": 0,
+            "main_model_tokens": null,
+            "total_cost": null
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 1,
+          "model": "cloud",
+          "ms": 1575.2857079999958,
+          "includingOpenMs": 3348.363333000001,
+          "passed": true,
+          "status": "verified",
+          "actions": 1,
+          "metrics": {
+            "decision_calls": 1,
+            "text_calls": 0,
+            "models": [
+              "jev-1.13.0"
+            ],
+            "typesafe_input": 13798,
+            "typesafe_output": 1147,
+            "text_input": 0,
+            "text_output": 0,
+            "main_model_tokens": null,
+            "total_cost": null
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 1,
+          "model": "laya",
+          "ms": 36.875208999997994,
+          "includingOpenMs": 1864.6376669999954,
+          "passed": false,
+          "status": "handoff",
+          "reason": "runtime_error",
+          "actions": 0,
+          "metrics": {
+            "decision_calls": 0,
+            "text_calls": 0,
+            "models": [],
+            "typesafe_input": 0,
+            "typesafe_output": 0,
+            "text_input": 0,
+            "text_output": 0,
+            "main_model_tokens": null,
+            "total_cost": null
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 1,
+          "model": "kev",
+          "ms": 1718.6117920000033,
+          "includingOpenMs": 3502.724957999999,
+          "passed": false,
+          "status": "handoff",
+          "reason": "done_not_verified",
+          "actions": 0,
+          "metrics": {
+            "decision_calls": 1,
+            "text_calls": 0,
+            "models": [
+              "kev-latest"
+            ],
+            "typesafe_input": 8207,
+            "typesafe_output": 1671,
+            "text_input": 0,
+            "text_output": 0,
+            "main_model_tokens": null,
+            "total_cost": null
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 1,
+          "model": "cloud",
+          "ms": 934.8196670000034,
+          "includingOpenMs": 2390.3857079999943,
+          "passed": true,
+          "status": "verified",
+          "actions": 1,
+          "metrics": {
+            "decision_calls": 1,
+            "text_calls": 0,
+            "models": [
+              "jev-1.13.0"
+            ],
+            "typesafe_input": 4359,
+            "typesafe_output": 427,
+            "text_input": 0,
+            "text_output": 0,
+            "main_model_tokens": null,
+            "total_cost": null
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 1,
+          "model": "laya",
+          "ms": 1092.2430419999946,
+          "includingOpenMs": 2532.890124999998,
+          "passed": false,
+          "status": "handoff",
+          "reason": "runtime_error",
+          "actions": 0,
+          "metrics": {
+            "decision_calls": 0,
+            "text_calls": 0,
+            "models": [],
+            "typesafe_input": 0,
+            "typesafe_output": 0,
+            "text_input": 0,
+            "text_output": 0,
+            "main_model_tokens": null,
+            "total_cost": null
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 1,
+          "model": "kev",
+          "ms": 444.2123750000028,
+          "includingOpenMs": 1913.5336249999964,
+          "passed": false,
+          "status": "handoff",
+          "reason": "done_not_verified",
+          "actions": 0,
+          "metrics": {
+            "decision_calls": 1,
+            "text_calls": 0,
+            "models": [
+              "kev-latest"
+            ],
+            "typesafe_input": 2580,
+            "typesafe_output": 654,
+            "text_input": 0,
+            "text_output": 0,
+            "main_model_tokens": null,
+            "total_cost": null
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 2,
+          "model": "laya",
+          "ms": 6065.175083000002,
+          "includingOpenMs": 6178.322625000008,
+          "passed": false,
+          "status": "handoff",
+          "reason": "runtime_error",
+          "actions": 0,
+          "metrics": {
+            "decision_calls": 0,
+            "text_calls": 0,
+            "models": [],
+            "typesafe_input": 0,
+            "typesafe_output": 0,
+            "text_input": 0,
+            "text_output": 0,
+            "main_model_tokens": null,
+            "total_cost": null
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 2,
+          "model": "kev",
+          "ms": 2279.3353329999954,
+          "includingOpenMs": 2422.0797080000048,
+          "passed": false,
+          "status": "handoff",
+          "reason": "done_not_verified",
+          "actions": 0,
+          "metrics": {
+            "decision_calls": 1,
+            "text_calls": 0,
+            "models": [
+              "kev-latest"
+            ],
+            "typesafe_input": 6323,
+            "typesafe_output": 1239,
+            "text_input": 0,
+            "text_output": 0,
+            "main_model_tokens": null,
+            "total_cost": null
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 2,
+          "model": "cloud",
+          "ms": 1304.0432090000104,
+          "includingOpenMs": 1437.9636670000036,
+          "passed": true,
+          "status": "verified",
+          "actions": 1,
+          "metrics": {
+            "decision_calls": 1,
+            "text_calls": 0,
+            "models": [
+              "jev-1.13.0"
+            ],
+            "typesafe_input": 10378,
+            "typesafe_output": 842,
+            "text_input": 0,
+            "text_output": 0,
+            "main_model_tokens": null,
+            "total_cost": null
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 2,
+          "model": "laya",
+          "ms": 33.11691700000665,
+          "includingOpenMs": 184.7033330000122,
+          "passed": false,
+          "status": "handoff",
+          "reason": "runtime_error",
+          "actions": 0,
+          "metrics": {
+            "decision_calls": 0,
+            "text_calls": 0,
+            "models": [],
+            "typesafe_input": 0,
+            "typesafe_output": 0,
+            "text_input": 0,
+            "text_output": 0,
+            "main_model_tokens": null,
+            "total_cost": null
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 2,
+          "model": "kev",
+          "ms": 946.4058750000113,
+          "includingOpenMs": 1093.7951660000108,
+          "passed": false,
+          "status": "handoff",
+          "reason": "done_not_verified",
+          "actions": 0,
+          "metrics": {
+            "decision_calls": 1,
+            "text_calls": 0,
+            "models": [
+              "kev-latest"
+            ],
+            "typesafe_input": 8207,
+            "typesafe_output": 1671,
+            "text_input": 0,
+            "text_output": 0,
+            "main_model_tokens": null,
+            "total_cost": null
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 2,
+          "model": "cloud",
+          "ms": 2044.0825829999958,
+          "includingOpenMs": 2180.167499999996,
+          "passed": true,
+          "status": "verified",
+          "actions": 1,
+          "metrics": {
+            "decision_calls": 1,
+            "text_calls": 0,
+            "models": [
+              "jev-1.13.0"
+            ],
+            "typesafe_input": 13799,
+            "typesafe_output": 1147,
+            "text_input": 0,
+            "text_output": 0,
+            "main_model_tokens": null,
+            "total_cost": null
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 2,
+          "model": "laya",
+          "ms": 974.1900410000089,
+          "includingOpenMs": 2425.840041000003,
+          "passed": false,
+          "status": "handoff",
+          "reason": "runtime_error",
+          "actions": 0,
+          "metrics": {
+            "decision_calls": 0,
+            "text_calls": 0,
+            "models": [],
+            "typesafe_input": 0,
+            "typesafe_output": 0,
+            "text_input": 0,
+            "text_output": 0,
+            "main_model_tokens": null,
+            "total_cost": null
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 2,
+          "model": "kev",
+          "ms": 417.3107910000108,
+          "includingOpenMs": 1764.5629159999953,
+          "passed": false,
+          "status": "handoff",
+          "reason": "done_not_verified",
+          "actions": 0,
+          "metrics": {
+            "decision_calls": 1,
+            "text_calls": 0,
+            "models": [
+              "kev-latest"
+            ],
+            "typesafe_input": 2566,
+            "typesafe_output": 651,
+            "text_input": 0,
+            "text_output": 0,
+            "main_model_tokens": null,
+            "total_cost": null
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 2,
+          "model": "cloud",
+          "ms": 941.0435419999994,
+          "includingOpenMs": 2356.5908330000093,
+          "passed": true,
+          "status": "verified",
+          "actions": 1,
+          "metrics": {
+            "decision_calls": 1,
+            "text_calls": 0,
+            "models": [
+              "jev-1.13.0"
+            ],
+            "typesafe_input": 4345,
+            "typesafe_output": 427,
+            "text_input": 0,
+            "text_output": 0,
+            "main_model_tokens": null,
+            "total_cost": null
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 3,
+          "model": "kev",
+          "ms": 1100.9575829999958,
+          "includingOpenMs": 1222.4270419999957,
+          "passed": false,
+          "status": "handoff",
+          "reason": "done_not_verified",
+          "actions": 0,
+          "metrics": {
+            "decision_calls": 1,
+            "text_calls": 0,
+            "models": [
+              "kev-latest"
+            ],
+            "typesafe_input": 6324,
+            "typesafe_output": 1244,
+            "text_input": 0,
+            "text_output": 0,
+            "main_model_tokens": null,
+            "total_cost": null
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 3,
+          "model": "cloud",
+          "ms": 1167.4782500000001,
+          "includingOpenMs": 1290.717082999996,
+          "passed": true,
+          "status": "verified",
+          "actions": 1,
+          "metrics": {
+            "decision_calls": 1,
+            "text_calls": 0,
+            "models": [
+              "jev-1.13.0"
+            ],
+            "typesafe_input": 10363,
+            "typesafe_output": 842,
+            "text_input": 0,
+            "text_output": 0,
+            "main_model_tokens": null,
+            "total_cost": null
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 3,
+          "model": "laya",
+          "ms": 3372.8184579999943,
+          "includingOpenMs": 3498.781124999994,
+          "passed": false,
+          "status": "handoff",
+          "reason": "runtime_error",
+          "actions": 0,
+          "metrics": {
+            "decision_calls": 0,
+            "text_calls": 0,
+            "models": [],
+            "typesafe_input": 0,
+            "typesafe_output": 0,
+            "text_input": 0,
+            "text_output": 0,
+            "main_model_tokens": null,
+            "total_cost": null
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 3,
+          "model": "kev",
+          "ms": 1644.7126250000001,
+          "includingOpenMs": 1786.6944159999985,
+          "passed": false,
+          "status": "handoff",
+          "reason": "done_not_verified",
+          "actions": 0,
+          "metrics": {
+            "decision_calls": 1,
+            "text_calls": 0,
+            "models": [
+              "kev-latest"
+            ],
+            "typesafe_input": 8223,
+            "typesafe_output": 1670,
+            "text_input": 0,
+            "text_output": 0,
+            "main_model_tokens": null,
+            "total_cost": null
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 3,
+          "model": "cloud",
+          "ms": 2052.0369159999973,
+          "includingOpenMs": 2195.412792000003,
+          "passed": true,
+          "status": "verified",
+          "actions": 1,
+          "metrics": {
+            "decision_calls": 1,
+            "text_calls": 0,
+            "models": [
+              "jev-1.13.0"
+            ],
+            "typesafe_input": 13798,
+            "typesafe_output": 1147,
+            "text_input": 0,
+            "text_output": 0,
+            "main_model_tokens": null,
+            "total_cost": null
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 3,
+          "model": "laya",
+          "ms": 34.574290999997174,
+          "includingOpenMs": 179.5870419999992,
+          "passed": false,
+          "status": "handoff",
+          "reason": "runtime_error",
+          "actions": 0,
+          "metrics": {
+            "decision_calls": 0,
+            "text_calls": 0,
+            "models": [],
+            "typesafe_input": 0,
+            "typesafe_output": 0,
+            "text_input": 0,
+            "text_output": 0,
+            "main_model_tokens": null,
+            "total_cost": null
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 3,
+          "model": "kev",
+          "ms": 486.26120799999626,
+          "includingOpenMs": 1329.6887500000012,
+          "passed": false,
+          "status": "handoff",
+          "reason": "done_not_verified",
+          "actions": 0,
+          "metrics": {
+            "decision_calls": 1,
+            "text_calls": 0,
+            "models": [
+              "kev-latest"
+            ],
+            "typesafe_input": 2580,
+            "typesafe_output": 651,
+            "text_input": 0,
+            "text_output": 0,
+            "main_model_tokens": null,
+            "total_cost": null
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 3,
+          "model": "cloud",
+          "ms": 985.6231669999979,
+          "includingOpenMs": 1862.2760830000043,
+          "passed": true,
+          "status": "verified",
+          "actions": 1,
+          "metrics": {
+            "decision_calls": 1,
+            "text_calls": 0,
+            "models": [
+              "jev-1.13.0"
+            ],
+            "typesafe_input": 4360,
+            "typesafe_output": 427,
+            "text_input": 0,
+            "text_output": 0,
+            "main_model_tokens": null,
+            "total_cost": null
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 3,
+          "model": "laya",
+          "ms": 999.0490420000133,
+          "includingOpenMs": 1895.7934590000077,
+          "passed": false,
+          "status": "handoff",
+          "reason": "runtime_error",
+          "actions": 0,
+          "metrics": {
+            "decision_calls": 0,
+            "text_calls": 0,
+            "models": [],
+            "typesafe_input": 0,
+            "typesafe_output": 0,
+            "text_input": 0,
+            "text_output": 0,
+            "main_model_tokens": null,
+            "total_cost": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "r03",
+      "protocol": {
+        "kind": "SDK/执行核心开发对照，非主 Agent 端到端性能",
+        "at": "2026-10-06T09:39:21.577Z",
+        "runtimeMetadata": {
+          "laya": {
+            "status": "ok",
+            "loaded": [
+              "multilingual"
+            ],
+            "revisions": {
+              "multilingual": "1720e3e3357cfe1e281542e223f8273b0890ca34"
+            },
+            "device": "mps",
+            "device_is_preference": false,
+            "checkpoint_devices": {
+              "multilingual": "mps"
+            },
+            "cpu_fallbacks": {
+              "multilingual": {
+                "count": 0,
+                "last_reason": null
+              }
+            }
+          },
+          "kev": {
+            "models": [
+              {
+                "name": "kev-latest",
+                "description": "Kev pointer head on Qwen/Qwen2.5-0.5B, serving jaredpalmer/kev-0.5b@9ce2fd39db3a397c89733f94af948e3d1fdfffcd at temperature 1.00",
+                "release_date": "2026-09-20",
+                "run": "jaredpalmer/kev-0.5b@9ce2fd39db3a397c89733f94af948e3d1fdfffcd",
+                "base": "Qwen/Qwen2.5-0.5B",
+                "lora": 16,
+                "device": "mps",
+                "backend": "torch",
+                "dtype": "float32",
+                "temperature": 1,
+                "max_state_tokens": 65536,
+                "truncate_states": false,
+                "cuda_graphs": null,
+                "prefix_cache": {
+                  "size": 4,
+                  "min_state_tokens": 384,
+                  "max_tokens": 65536,
+                  "hits": 7,
+                  "misses": 11,
+                  "cached_states": 4,
+                  "oom_retries": 0
+                },
+                "batches": {
+                  "count": 18,
+                  "requests": 18,
+                  "queued": 0
+                }
+              },
+              {
+                "name": "jev-latest",
+                "description": "Kev pointer head on Qwen/Qwen2.5-0.5B, serving jaredpalmer/kev-0.5b@9ce2fd39db3a397c89733f94af948e3d1fdfffcd at temperature 1.00",
+                "release_date": "2026-09-20",
+                "run": "jaredpalmer/kev-0.5b@9ce2fd39db3a397c89733f94af948e3d1fdfffcd",
+                "base": "Qwen/Qwen2.5-0.5B",
+                "lora": 16,
+                "device": "mps",
+                "backend": "torch",
+                "dtype": "float32",
+                "temperature": 1,
+                "max_state_tokens": 65536,
+                "truncate_states": false,
+                "cuda_graphs": null,
+                "prefix_cache": {
+                  "size": 4,
+                  "min_state_tokens": 384,
+                  "max_tokens": 65536,
+                  "hits": 7,
+                  "misses": 11,
+                  "cached_states": 4,
+                  "oom_retries": 0
+                },
+                "batches": {
+                  "count": 18,
+                  "requests": 18,
+                  "queued": 0
+                }
+              }
+            ]
+          },
+          "semif": {
+            "model": "semif/Qwen/Qwen3.5-4B@851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a",
+            "backend": "mlx",
+            "load_seconds": 22.665106332977302,
+            "max_tokens": 16384,
+            "max_candidates": 256
+          }
+        },
+        "contextSha256": "11a0d240ea4bcb38aa7f6f3afa2e47ae683e75fbee14dd8d2e035b1850d8c649",
+        "cases": [
+          {
+            "id": "gutenberg-ranking",
+            "url": "https://www.gutenberg.org/",
+            "candidates": 85,
+            "coverage": {
+              "candidateScope": "batch",
+              "scannedNodes": 356,
+              "truncated": false,
+              "offscreen": 55,
+              "hidden": 5,
+              "sensitive": 0,
+              "loginForms": 0,
+              "totalCandidates": 85,
+              "visibleCandidates": 28,
+              "scrollRegions": [
+                {
+                  "selector": null,
+                  "label": "页面",
+                  "y": 0,
+                  "height": 15182,
+                  "viewport": 900,
+                  "x": 640,
+                  "cy": 450
+                }
+              ],
+              "elapsed_ms": 18.699999928474426,
+              "unsupported": {
+                "canvas": 0,
+                "frames": 0
+              }
+            },
+            "gold": {
+              "operation": "CLICK",
+              "targets": [
+                "e12",
+                "e16"
+              ]
+            }
+          },
+          {
+            "id": "books-travel",
+            "url": "https://books.toscrape.com/",
+            "candidates": 113,
+            "coverage": {
+              "candidateScope": "batch",
+              "scannedNodes": 496,
+              "truncated": true,
+              "offscreen": 59,
+              "hidden": 0,
+              "sensitive": 0,
+              "loginForms": 0,
+              "totalCandidates": 113,
+              "visibleCandidates": 51,
+              "scrollRegions": [
+                {
+                  "selector": null,
+                  "label": "页面",
+                  "y": 0,
+                  "height": 2569,
+                  "viewport": 900,
+                  "x": 640,
+                  "cy": 450
+                }
+              ],
+              "elapsed_ms": 4,
+              "unsupported": {
+                "canvas": 0,
+                "frames": 0
+              }
+            },
+            "gold": {
+              "operation": "CLICK",
+              "targets": [
+                "e4"
+              ]
+            }
+          },
+          {
+            "id": "wiki-section",
+            "url": "https://en.wikipedia.org/wiki/Alan_Turing",
+            "candidates": 29,
+            "coverage": {
+              "candidateScope": "batch",
+              "scannedNodes": 500,
+              "truncated": true,
+              "offscreen": 1,
+              "hidden": 84,
+              "sensitive": 0,
+              "loginForms": 0,
+              "totalCandidates": 29,
+              "visibleCandidates": 25,
+              "scrollRegions": [
+                {
+                  "selector": null,
+                  "label": "页面",
+                  "y": 0,
+                  "height": 41429,
+                  "viewport": 900,
+                  "x": 640,
+                  "cy": 450
+                }
+              ],
+              "elapsed_ms": 3.5,
+              "unsupported": {
+                "canvas": 0,
+                "frames": 0
+              }
+            },
+            "gold": {
+              "operation": "CLICK",
+              "targets": [
+                "e17"
+              ]
+            }
+          }
+        ],
+        "repeats": 3,
+        "order": "每次重复轮转 cloud/laya/kev/semif；保留全部失败",
+        "taskBudget": {
+          "totalMs": 90000,
+          "maxActions": 40,
+          "sliceMs": 45000
+        }
+      },
+      "finished": false,
+      "records": [
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 1,
+          "model": "cloud",
+          "ms": 1139.85175,
+          "passed": true,
+          "result": {
+            "operation": "CLICK",
+            "target": "e12",
+            "model": "jev-1.13.0",
+            "latency_ms": 1139,
+            "usage": {
+              "input_tokens": 11098,
+              "output_tokens": 906
+            }
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 1,
+          "model": "laya",
+          "ms": 3763.1141659999994,
+          "passed": false,
+          "error": {
+            "code": "MODEL_HTTP_ERROR",
+            "provider": "local",
+            "message": "local 模型接口 HTTP 422"
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 1,
+          "model": "kev",
+          "ms": 1165.280417,
+          "passed": false,
+          "result": {
+            "operation": "DONE",
+            "model": "kev-latest",
+            "latency_ms": 1165,
+            "usage": {
+              "input_tokens": 6755,
+              "output_tokens": 1333
+            }
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 1,
+          "model": "semif",
+          "ms": 25002.538416,
+          "passed": false,
+          "error": {
+            "code": "MODEL_NETWORK_ERROR",
+            "provider": "local",
+            "message": "local 模型网络失败；检查 本地服务及端口；底层 TimeoutError"
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 1,
+          "model": "cloud",
+          "ms": 970.6334999999999,
+          "passed": true,
+          "result": {
+            "operation": "CLICK",
+            "target": "e4",
+            "model": "jev-1.13.0",
+            "latency_ms": 970,
+            "usage": {
+              "input_tokens": 13741,
+              "output_tokens": 1147
+            }
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 1,
+          "model": "laya",
+          "ms": 2.130916000001889,
+          "passed": false,
+          "error": {
+            "code": "MODEL_HTTP_ERROR",
+            "provider": "local",
+            "message": "local 模型接口 HTTP 413"
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 1,
+          "model": "kev",
+          "ms": 2659.674583,
+          "passed": false,
+          "result": {
+            "operation": "DONE",
+            "model": "kev-latest",
+            "latency_ms": 2660,
+            "usage": {
+              "input_tokens": 8181,
+              "output_tokens": 1672
+            }
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 1,
+          "model": "semif",
+          "ms": 25000.627290999997,
+          "passed": false,
+          "error": {
+            "code": "MODEL_NETWORK_ERROR",
+            "provider": "local",
+            "message": "local 模型网络失败；检查 本地服务及端口；底层 TimeoutError"
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 1,
+          "model": "cloud",
+          "ms": 781.2555829999983,
+          "passed": true,
+          "result": {
+            "operation": "CLICK",
+            "target": "e17",
+            "model": "jev-1.13.0",
+            "latency_ms": 781,
+            "usage": {
+              "input_tokens": 4307,
+              "output_tokens": 427
+            }
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 1,
+          "model": "laya",
+          "ms": 1963.3031669999982,
+          "passed": false,
+          "error": {
+            "code": "MODEL_HTTP_ERROR",
+            "provider": "local",
+            "message": "local 模型接口 HTTP 422"
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 1,
+          "model": "kev",
+          "ms": 1220.4400000000023,
+          "passed": false,
+          "result": {
+            "operation": "DONE",
+            "model": "kev-latest",
+            "latency_ms": 1220,
+            "usage": {
+              "input_tokens": 2544,
+              "output_tokens": 646
+            }
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 1,
+          "model": "semif",
+          "ms": 25001.120958000007,
+          "passed": false,
+          "error": {
+            "code": "MODEL_NETWORK_ERROR",
+            "provider": "local",
+            "message": "local 模型网络失败；检查 本地服务及端口；底层 TimeoutError"
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 2,
+          "model": "laya",
+          "ms": 5820.7351250000065,
+          "passed": false,
+          "error": {
+            "code": "MODEL_HTTP_ERROR",
+            "provider": "local",
+            "message": "local 模型接口 HTTP 422"
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 2,
+          "model": "kev",
+          "ms": 3131.7285839999968,
+          "passed": false,
+          "result": {
+            "operation": "DONE",
+            "model": "kev-latest",
+            "latency_ms": 3132,
+            "usage": {
+              "input_tokens": 6755,
+              "output_tokens": 1333
+            }
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 2,
+          "model": "semif",
+          "ms": 25000.579291000002,
+          "passed": false,
+          "error": {
+            "code": "MODEL_NETWORK_ERROR",
+            "provider": "local",
+            "message": "local 模型网络失败；检查 本地服务及端口；底层 TimeoutError"
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 2,
+          "model": "cloud",
+          "ms": 989.2643340000068,
+          "passed": true,
+          "result": {
+            "operation": "CLICK",
+            "target": "e12",
+            "model": "jev-1.13.0",
+            "latency_ms": 989,
+            "usage": {
+              "input_tokens": 11098,
+              "output_tokens": 906
+            }
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 2,
+          "model": "laya",
+          "ms": 2.140499999994063,
+          "passed": false,
+          "error": {
+            "code": "MODEL_HTTP_ERROR",
+            "provider": "local",
+            "message": "local 模型接口 HTTP 413"
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 2,
+          "model": "kev",
+          "ms": 1648.3842920000025,
+          "passed": false,
+          "result": {
+            "operation": "DONE",
+            "model": "kev-latest",
+            "latency_ms": 1648,
+            "usage": {
+              "input_tokens": 8181,
+              "output_tokens": 1672
+            }
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 2,
+          "model": "semif",
+          "ms": 25000.952332999994,
+          "passed": false,
+          "error": {
+            "code": "MODEL_NETWORK_ERROR",
+            "provider": "local",
+            "message": "local 模型网络失败；检查 本地服务及端口；底层 TimeoutError"
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 2,
+          "model": "cloud",
+          "ms": 1055.5335830000113,
+          "passed": true,
+          "result": {
+            "operation": "CLICK",
+            "target": "e4",
+            "model": "jev-1.13.0",
+            "latency_ms": 1055,
+            "usage": {
+              "input_tokens": 13741,
+              "output_tokens": 1147
+            }
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 2,
+          "model": "laya",
+          "ms": 2024.8580000000075,
+          "passed": false,
+          "error": {
+            "code": "MODEL_HTTP_ERROR",
+            "provider": "local",
+            "message": "local 模型接口 HTTP 422"
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 2,
+          "model": "kev",
+          "ms": 1049.2594999999856,
+          "passed": false,
+          "result": {
+            "operation": "DONE",
+            "model": "kev-latest",
+            "latency_ms": 1049,
+            "usage": {
+              "input_tokens": 2544,
+              "output_tokens": 646
+            }
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 2,
+          "model": "semif",
+          "ms": 25000.347416000004,
+          "passed": false,
+          "error": {
+            "code": "MODEL_NETWORK_ERROR",
+            "provider": "local",
+            "message": "local 模型网络失败；检查 本地服务及端口；底层 TimeoutError"
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 2,
+          "model": "cloud",
+          "ms": 782.7335409999941,
+          "passed": true,
+          "result": {
+            "operation": "CLICK",
+            "target": "e17",
+            "model": "jev-1.13.0",
+            "latency_ms": 783,
+            "usage": {
+              "input_tokens": 4307,
+              "output_tokens": 427
+            }
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 3,
+          "model": "kev",
+          "ms": 709.3435000000172,
+          "passed": false,
+          "result": {
+            "operation": "DONE",
+            "model": "kev-latest",
+            "latency_ms": 709,
+            "usage": {
+              "input_tokens": 6755,
+              "output_tokens": 1333
+            }
+          }
+        }
+      ],
+      "runs": []
+    },
+    {
+      "id": "r04",
+      "protocol": {
+        "kind": "SDK/执行核心开发对照，非主 Agent 端到端性能",
+        "at": "2026-10-06T09:43:04.131Z",
+        "runtimeMetadata": {
+          "laya": {
+            "status": "ok",
+            "loaded": [
+              "multilingual"
+            ],
+            "revisions": {
+              "multilingual": "1720e3e3357cfe1e281542e223f8273b0890ca34"
+            },
+            "device": "mps",
+            "device_is_preference": false,
+            "checkpoint_devices": {
+              "multilingual": "mps"
+            },
+            "cpu_fallbacks": {
+              "multilingual": {
+                "count": 0,
+                "last_reason": null
+              }
+            }
+          },
+          "kev": {
+            "models": [
+              {
+                "name": "kev-latest",
+                "description": "Kev pointer head on Qwen/Qwen2.5-0.5B, serving jaredpalmer/kev-0.5b@9ce2fd39db3a397c89733f94af948e3d1fdfffcd at temperature 1.00",
+                "release_date": "2026-09-20",
+                "run": "jaredpalmer/kev-0.5b@9ce2fd39db3a397c89733f94af948e3d1fdfffcd",
+                "base": "Qwen/Qwen2.5-0.5B",
+                "lora": 16,
+                "device": "mps",
+                "backend": "torch",
+                "dtype": "float32",
+                "temperature": 1,
+                "max_state_tokens": 65536,
+                "truncate_states": false,
+                "cuda_graphs": null,
+                "prefix_cache": {
+                  "size": 4,
+                  "min_state_tokens": 384,
+                  "max_tokens": 65536,
+                  "hits": 11,
+                  "misses": 14,
+                  "cached_states": 4,
+                  "oom_retries": 0
+                },
+                "batches": {
+                  "count": 25,
+                  "requests": 25,
+                  "queued": 0
+                }
+              },
+              {
+                "name": "jev-latest",
+                "description": "Kev pointer head on Qwen/Qwen2.5-0.5B, serving jaredpalmer/kev-0.5b@9ce2fd39db3a397c89733f94af948e3d1fdfffcd at temperature 1.00",
+                "release_date": "2026-09-20",
+                "run": "jaredpalmer/kev-0.5b@9ce2fd39db3a397c89733f94af948e3d1fdfffcd",
+                "base": "Qwen/Qwen2.5-0.5B",
+                "lora": 16,
+                "device": "mps",
+                "backend": "torch",
+                "dtype": "float32",
+                "temperature": 1,
+                "max_state_tokens": 65536,
+                "truncate_states": false,
+                "cuda_graphs": null,
+                "prefix_cache": {
+                  "size": 4,
+                  "min_state_tokens": 384,
+                  "max_tokens": 65536,
+                  "hits": 11,
+                  "misses": 14,
+                  "cached_states": 4,
+                  "oom_retries": 0
+                },
+                "batches": {
+                  "count": 25,
+                  "requests": 25,
+                  "queued": 0
+                }
+              }
+            ]
+          },
+          "semif": {
+            "model": "semif/Qwen/Qwen3.5-4B@851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a",
+            "backend": "mlx",
+            "load_seconds": 6.863806667039171,
+            "max_tokens": 16384,
+            "max_candidates": 256
+          }
+        },
+        "contextSha256": "11a0d240ea4bcb38aa7f6f3afa2e47ae683e75fbee14dd8d2e035b1850d8c649",
+        "cases": [
+          {
+            "id": "gutenberg-ranking",
+            "url": "https://www.gutenberg.org/",
+            "candidates": 85,
+            "coverage": {
+              "candidateScope": "batch",
+              "scannedNodes": 356,
+              "truncated": false,
+              "offscreen": 55,
+              "hidden": 5,
+              "sensitive": 0,
+              "loginForms": 0,
+              "totalCandidates": 85,
+              "visibleCandidates": 28,
+              "scrollRegions": [
+                {
+                  "selector": null,
+                  "label": "页面",
+                  "y": 0,
+                  "height": 15182,
+                  "viewport": 900,
+                  "x": 640,
+                  "cy": 450
+                }
+              ],
+              "elapsed_ms": 18.699999928474426,
+              "unsupported": {
+                "canvas": 0,
+                "frames": 0
+              }
+            },
+            "gold": {
+              "operation": "CLICK",
+              "targets": [
+                "e12",
+                "e16"
+              ]
+            }
+          },
+          {
+            "id": "books-travel",
+            "url": "https://books.toscrape.com/",
+            "candidates": 113,
+            "coverage": {
+              "candidateScope": "batch",
+              "scannedNodes": 496,
+              "truncated": true,
+              "offscreen": 59,
+              "hidden": 0,
+              "sensitive": 0,
+              "loginForms": 0,
+              "totalCandidates": 113,
+              "visibleCandidates": 51,
+              "scrollRegions": [
+                {
+                  "selector": null,
+                  "label": "页面",
+                  "y": 0,
+                  "height": 2569,
+                  "viewport": 900,
+                  "x": 640,
+                  "cy": 450
+                }
+              ],
+              "elapsed_ms": 4,
+              "unsupported": {
+                "canvas": 0,
+                "frames": 0
+              }
+            },
+            "gold": {
+              "operation": "CLICK",
+              "targets": [
+                "e4"
+              ]
+            }
+          },
+          {
+            "id": "wiki-section",
+            "url": "https://en.wikipedia.org/wiki/Alan_Turing",
+            "candidates": 29,
+            "coverage": {
+              "candidateScope": "batch",
+              "scannedNodes": 500,
+              "truncated": true,
+              "offscreen": 1,
+              "hidden": 84,
+              "sensitive": 0,
+              "loginForms": 0,
+              "totalCandidates": 29,
+              "visibleCandidates": 25,
+              "scrollRegions": [
+                {
+                  "selector": null,
+                  "label": "页面",
+                  "y": 0,
+                  "height": 41429,
+                  "viewport": 900,
+                  "x": 640,
+                  "cy": 450
+                }
+              ],
+              "elapsed_ms": 3.5,
+              "unsupported": {
+                "canvas": 0,
+                "frames": 0
+              }
+            },
+            "gold": {
+              "operation": "CLICK",
+              "targets": [
+                "e17"
+              ]
+            }
+          }
+        ],
+        "repeats": 3,
+        "order": "每次重复轮转 cloud/laya/kev/semif；保留全部失败",
+        "taskBudget": {
+          "totalMs": 90000,
+          "maxActions": 40,
+          "sliceMs": 45000
+        }
+      },
+      "finished": false,
+      "records": [
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 1,
+          "model": "cloud",
+          "ms": 1009.786416,
+          "passed": true,
+          "result": {
+            "operation": "CLICK",
+            "target": "e12",
+            "model": "jev-1.13.0",
+            "latency_ms": 1009,
+            "usage": {
+              "input_tokens": 11098,
+              "output_tokens": 906
+            }
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 1,
+          "model": "laya",
+          "ms": 4476.499709000001,
+          "passed": false,
+          "error": {
+            "code": "MODEL_HTTP_ERROR",
+            "provider": "local",
+            "message": "local 模型接口 HTTP 422"
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 1,
+          "model": "kev",
+          "ms": 628.9704170000005,
+          "passed": false,
+          "result": {
+            "operation": "DONE",
+            "model": "kev-latest",
+            "latency_ms": 629,
+            "usage": {
+              "input_tokens": 6755,
+              "output_tokens": 1333
+            }
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 1,
+          "model": "semif",
+          "ms": 25001.301875,
+          "passed": false,
+          "error": {
+            "code": "MODEL_NETWORK_ERROR",
+            "provider": "local",
+            "message": "local 模型网络失败；检查 本地服务及端口；底层 TimeoutError"
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 1,
+          "model": "cloud",
+          "ms": 979.9943329999987,
+          "passed": true,
+          "result": {
+            "operation": "CLICK",
+            "target": "e4",
+            "model": "jev-1.13.0",
+            "latency_ms": 980,
+            "usage": {
+              "input_tokens": 13741,
+              "output_tokens": 1147
+            }
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 1,
+          "model": "laya",
+          "ms": 2.0308340000010503,
+          "passed": false,
+          "error": {
+            "code": "MODEL_HTTP_ERROR",
+            "provider": "local",
+            "message": "local 模型接口 HTTP 413"
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 1,
+          "model": "kev",
+          "ms": 1876.5323749999989,
+          "passed": false,
+          "result": {
+            "operation": "DONE",
+            "model": "kev-latest",
+            "latency_ms": 1876,
+            "usage": {
+              "input_tokens": 8181,
+              "output_tokens": 1672
+            }
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 1,
+          "model": "semif",
+          "ms": 25000.90225,
+          "passed": false,
+          "error": {
+            "code": "MODEL_NETWORK_ERROR",
+            "provider": "local",
+            "message": "local 模型网络失败；检查 本地服务及端口；底层 TimeoutError"
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 1,
+          "model": "cloud",
+          "ms": 781.9685000000027,
+          "passed": true,
+          "result": {
+            "operation": "CLICK",
+            "target": "e17",
+            "model": "jev-1.13.0",
+            "latency_ms": 782,
+            "usage": {
+              "input_tokens": 4307,
+              "output_tokens": 427
+            }
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 1,
+          "model": "laya",
+          "ms": 671.9896660000013,
+          "passed": false,
+          "error": {
+            "code": "MODEL_HTTP_ERROR",
+            "provider": "local",
+            "message": "local 模型接口 HTTP 422"
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 1,
+          "model": "kev",
+          "ms": 752.8556670000035,
+          "passed": false,
+          "result": {
+            "operation": "DONE",
+            "model": "kev-latest",
+            "latency_ms": 753,
+            "usage": {
+              "input_tokens": 2544,
+              "output_tokens": 646
+            }
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 1,
+          "model": "semif",
+          "ms": 25000.484458,
+          "passed": false,
+          "error": {
+            "code": "MODEL_NETWORK_ERROR",
+            "provider": "local",
+            "message": "local 模型网络失败；检查 本地服务及端口；底层 TimeoutError"
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 2,
+          "model": "laya",
+          "ms": 6001.4785409999895,
+          "passed": false,
+          "error": {
+            "code": "MODEL_HTTP_ERROR",
+            "provider": "local",
+            "message": "local 模型接口 HTTP 422"
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 2,
+          "model": "kev",
+          "ms": 1463.686625000002,
+          "passed": false,
+          "result": {
+            "operation": "DONE",
+            "model": "kev-latest",
+            "latency_ms": 1464,
+            "usage": {
+              "input_tokens": 6755,
+              "output_tokens": 1333
+            }
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 2,
+          "model": "semif",
+          "ms": 25001.126917,
+          "passed": false,
+          "error": {
+            "code": "MODEL_NETWORK_ERROR",
+            "provider": "local",
+            "message": "local 模型网络失败；检查 本地服务及端口；底层 TimeoutError"
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 2,
+          "model": "cloud",
+          "ms": 999.5462919999991,
+          "passed": true,
+          "result": {
+            "operation": "CLICK",
+            "target": "e12",
+            "model": "jev-1.13.0",
+            "latency_ms": 999,
+            "usage": {
+              "input_tokens": 11098,
+              "output_tokens": 906
+            }
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 2,
+          "model": "laya",
+          "ms": 2.1655830000090646,
+          "passed": false,
+          "error": {
+            "code": "MODEL_HTTP_ERROR",
+            "provider": "local",
+            "message": "local 模型接口 HTTP 413"
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 2,
+          "model": "kev",
+          "ms": 2007.6013339999918,
+          "passed": false,
+          "result": {
+            "operation": "DONE",
+            "model": "kev-latest",
+            "latency_ms": 2008,
+            "usage": {
+              "input_tokens": 8181,
+              "output_tokens": 1672
+            }
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 2,
+          "model": "semif",
+          "ms": 25001.159249999997,
+          "passed": false,
+          "error": {
+            "code": "MODEL_NETWORK_ERROR",
+            "provider": "local",
+            "message": "local 模型网络失败；检查 本地服务及端口；底层 TimeoutError"
+          }
+        },
+        {
+          "case": "books-travel",
+          "repeat": 2,
+          "model": "cloud",
+          "ms": 973.0307500000054,
+          "passed": true,
+          "result": {
+            "operation": "CLICK",
+            "target": "e4",
+            "model": "jev-1.13.0",
+            "latency_ms": 973,
+            "usage": {
+              "input_tokens": 13741,
+              "output_tokens": 1147
+            }
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 2,
+          "model": "laya",
+          "ms": 972.4717919999966,
+          "passed": false,
+          "error": {
+            "code": "MODEL_HTTP_ERROR",
+            "provider": "local",
+            "message": "local 模型接口 HTTP 422"
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 2,
+          "model": "kev",
+          "ms": 559.431499999977,
+          "passed": false,
+          "result": {
+            "operation": "DONE",
+            "model": "kev-latest",
+            "latency_ms": 559,
+            "usage": {
+              "input_tokens": 2544,
+              "output_tokens": 646
+            }
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 2,
+          "model": "semif",
+          "ms": 25001.629916999984,
+          "passed": false,
+          "error": {
+            "code": "MODEL_NETWORK_ERROR",
+            "provider": "local",
+            "message": "local 模型网络失败；检查 本地服务及端口；底层 TimeoutError"
+          }
+        },
+        {
+          "case": "wiki-section",
+          "repeat": 2,
+          "model": "cloud",
+          "ms": 786.5947909999813,
+          "passed": true,
+          "result": {
+            "operation": "CLICK",
+            "target": "e17",
+            "model": "jev-1.13.0",
+            "latency_ms": 787,
+            "usage": {
+              "input_tokens": 4307,
+              "output_tokens": 427
+            }
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 3,
+          "model": "kev",
+          "ms": 1251.2681250000023,
+          "passed": false,
+          "result": {
+            "operation": "DONE",
+            "model": "kev-latest",
+            "latency_ms": 1251,
+            "usage": {
+              "input_tokens": 6755,
+              "output_tokens": 1333
+            }
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 3,
+          "model": "semif",
+          "ms": 25000.327334,
+          "passed": false,
+          "error": {
+            "code": "MODEL_NETWORK_ERROR",
+            "provider": "local",
+            "message": "local 模型网络失败；检查 本地服务及端口；底层 TimeoutError"
+          }
+        },
+        {
+          "case": "gutenberg-ranking",
+          "repeat": 3,
+          "model": "cloud",
+          "ms": 1022.8880419999768,
+          "passed": true,
+          "result": {
+            "operation": "CLICK",
+            "target": "e12",
+            "model": "jev-1.13.0",
+            "latency_ms": 1023,
+            "usage": {
+              "input_tokens": 11098,
+              "output_tokens": 906
+            }
+          }
+        }
+      ],
+      "runs": []
+    }
+  ]
+}

@@ -17,6 +17,12 @@ Version 1.0 targets public websites that require no login. Native host workflows
 
 `Main agent plans and verifies → InspireJev execution core → TypeSafe / Jev action decisions → Playwright browser → Page evidence`
 
+### Optional local decision models (1.1 RC)
+
+The 1.1 RC supports **Laya, Kev, OpenJev/SemIf** and compatible `/v1/systemone` servers. TypeSafe's hosted Jev remains the default. These are independent open models with different limits and accuracy. Local failures never trigger a silent cloud fallback. Only decision inference moves locally; the parent agent and optional text model retain their own configuration.
+
+See the [local model guide](docs/LOCAL-MODELS.md) and [measured comparison, including failures](docs/validation/local-model-comparison-20261006.md).
+
 - Execute natural business stages and return structured data with sources.
 - Fill known values through the execution core; optionally use DeepSeek to generate new text.
 - Verify completion conditions, with checkpoints, resume, cancellation, and takeover in the same browser state.

@@ -17,6 +17,12 @@ InspireJev 让主 Agent 优先通过 Jev 工具连续执行网页交互，适用
 
 `主 Agent 规划与核验 → InspireJev 执行核心 → TypeSafe / Jev 动作决策 → Playwright 浏览器 → 页面证据`
 
+### 可选本地决策模型（1.1 RC）
+
+1.1 RC 支持云端／本地切换，可连接 **Laya、Kev、OpenJev／SemIf** 或兼容 `/v1/systemone` 的服务。默认继续使用 TypeSafe 云端 Jev。本地模型是独立开源实现，能力、上下文限制与准确性各不相同；本地服务故障不会自动把页面发给云端。
+
+安装与选择见[本地模型指南](docs/LOCAL-MODELS.md)，实测与失败见[模型对照报告](docs/validation/local-model-comparison-20261006.md)。本地推理只替换动作决策，主 Agent 与可选文本模型仍采用各自配置。
+
 - 连续执行自然业务阶段，返回结构化采集结果和来源。
 - 已知输入由执行核心填写；需要新写文字时，可选用 DeepSeek 文本模型。
 - 任务以完成条件核验，支持检查点、续跑、取消和同一现场接管。
