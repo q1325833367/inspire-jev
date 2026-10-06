@@ -18,9 +18,11 @@ export function capturePage(options={}) {
     return true;
   };
   const push=(a,cap=limits.maxCandidates-10)=>{if(actions.length<Math.max(1,cap))actions.push({...a,id:`e${actions.length+1}`});};
-  const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_ELEMENT,{acceptNode:e=>e.matches('script,style,noscript,template')?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT});
+  const dialogs=Array.from(document.querySelectorAll('dialog[open],[role="dialog"],[role="alertdialog"]')).filter(visible);
+  const scope=dialogs.at(-1)||document.body;
+  const walker=document.createTreeWalker(scope,NodeFilter.SHOW_ELEMENT,{acceptNode:e=>e.matches('script,style,noscript,template,svg defs,svg symbol,svg path,svg use')?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT});
   if(options.cursor?.documentId===documentId&&options.cursor?.url===location.href&&options.cursor?.selector){
-    const last=document.querySelector(options.cursor.selector);if(last)walker.currentNode=last;
+    const last=document.querySelector(options.cursor.selector);if(last&&scope.contains(last))walker.currentNode=last;
   }
   let e,last,hasMore=false;
   while((e=walker.nextNode())){
@@ -60,7 +62,7 @@ export function capturePage(options={}) {
   if(hasMore)actions.push({id:'observe_more',kind:'observe',label:'继续发现下一批候选',documentId,documentUrl:location.href});
   actions.push({id:'wait',kind:'wait',label:'等待页面更新',documentId,documentUrl:location.href});
   return{url:location.href,title:document.title,documentId,text:words.join('\n').slice(0,limits.maxText),actions,cursor:hasMore&&last?{documentId,url:location.href,selector:path(last)}:null,
-    coverage:{candidateScope:'batch',scannedNodes:nodes,truncated:hasMore,offscreen,hidden,sensitive,loginForms:seenAuth.size,totalCandidates:actions.length,visibleCandidates:actions.filter(a=>a.inViewport).length,scrollRegions:regions,elapsed_ms:performance.now()-began,unsupported:{canvas:document.getElementsByTagName('canvas').length,frames:document.getElementsByTagName('iframe').length}}};
+    coverage:{candidateScope:dialogs.length?'dialog':'batch',scannedNodes:nodes,truncated:hasMore,offscreen,hidden,sensitive,loginForms:seenAuth.size,totalCandidates:actions.length,visibleCandidates:actions.filter(a=>a.inViewport).length,scrollRegions:regions,elapsed_ms:performance.now()-began,unsupported:{canvas:document.getElementsByTagName('canvas').length,frames:document.getElementsByTagName('iframe').length}}};
 }
 
 export function probeTarget(action,targetElement) {

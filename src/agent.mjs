@@ -39,7 +39,7 @@ export class Agent {
       const session=this.sessions.get(task.sessionId);
       const unknown=await this.unknownSubmission(task.sessionId);if(unknown)return unknown;
       if(task.allowedOrigins.some(o=>!session.record.allowedOrigins.includes(o)))throw Error('任务不能扩大会话允许来源');
-      record={runId:randomUUID(),sessionId:task.sessionId,requestId:task.requestId,task,status:'starting',active:false,browserMode:session.record.profileId?'独立受控浏览器':'GPT 侧栏'};
+      record={runId:randomUUID(),sessionId:task.sessionId,requestId:task.requestId,task,status:'starting',active:false,browserMode:session.record.mode||(session.record.profileId?'独立受控浏览器':'GPT 侧栏')};
       await this.store.write('runs',record.runId,record);await this.store.write('requests',task.requestId,{runId:record.runId,digest:digest(task)});
     }finally{await release();}
     return this.drive(record,false,{signal,onProgress});
@@ -82,8 +82,8 @@ export class Agent {
   async status(runId){return this.summary(await this.store.read('runs',safeId(runId)));}
   async cancel(runId){safeId(runId);const controller=this.controllers.get(runId);if(controller){controller.abort();return{runId,cancellationRequested:true};}const r=await this.store.read('runs',runId);if(r.status==='verified')return{runId,status:'verified',cancellationRequested:false};r.status='cancelled';r.active=false;if(r.checkpoint)r.checkpoint.status='cancelled';await this.store.write('runs',runId,r);return this.summary(r);}
   async unknownSubmission(sessionId){
-    const profileId=this.sessions.get(sessionId).record.profileId;
-    const pending=(await this.store.list('supervisor')).find(e=>(e.sessionId===sessionId||profileId&&e.profileId===profileId)&&e.isSubmit&&e.issued&&e.effect!=='effect_observed');
+    const session=this.sessions.get(sessionId),profileId=session.record.profileId;
+    const pending=(await this.store.list('supervisor')).find(e=>(e.sessionId===sessionId||profileId&&e.profileId===profileId||e.physicalIdentity===session.adapter.identity)&&e.isSubmit&&e.issued&&e.effect!=='effect_observed');
     return pending?{status:'handoff',reason:'uncertain_action',actionId:pending.id,requiresVerification:true}:null;
   }
   async act({sessionId,ref,value,generate,authorizedSubmit=false,runId},options={}){
@@ -97,8 +97,8 @@ export class Agent {
     if(['click','press'].includes(action.kind)&&action.formAction&&!s.record.allowedOrigins.includes(new URL(action.formAction).origin))throw Error('表单提交来源未授权');
     const id=randomUUID(),release=await acquire(s.adapter.identity,id);
     const intent={kind:action.kind,selector:action.selector,href:action.href,documentId:action.documentId,documentUrl:action.documentUrl,frameIndex:action.frameIndex,
-      label:action.kind==='select'?action.label:undefined,expectedHash:action.kind==='fill'?createHash('sha256').update(String(value)).digest('hex'):undefined,expectedValue:action.kind==='check'?Boolean(value):undefined};
-    const entry={id,sessionId,profileId:s.record.profileId,runId,kind:action.kind,isSubmit:!!action.isSubmit,issued:false,phase:'prepared',effect:'unknown',startedAt:Date.now(),intent,allowedOrigins:s.record.allowedOrigins};
+      frameId:action.frameId,label:action.kind==='select'?action.label:undefined,expectedHash:action.kind==='fill'?createHash('sha256').update(String(value)).digest('hex'):undefined,expectedValue:action.kind==='check'?Boolean(value):undefined};
+    const entry={id,sessionId,profileId:s.record.profileId,physicalIdentity:s.adapter.identity,runId,kind:action.kind,isSubmit:!!action.isSubmit,issued:false,phase:'prepared',effect:'unknown',startedAt:Date.now(),intent,allowedOrigins:s.record.allowedOrigins};
     try{
       if(options.signal?.aborted)return{status:'cancelled'};
       if(!(await s.adapter.validate(action)).ok)return{status:'handoff',reason:'target_changed'};
@@ -140,12 +140,13 @@ export class Agent {
     catch(error){await this.observer.toolError(ticket,name,error);throw error;}
   }
   async dispatch(name,args={},options={}){
-    if(options.signal?.aborted&&(name==='jev_run'||name==='jev_resume'||name==='jev_session'&&['open','act'].includes(args.action)))return{status:'cancelled',reason:'host_cancelled'};
+    if(options.signal?.aborted&&(name==='jev_run'||name==='jev_resume'||name==='jev_session'&&['open','attach','connect','act'].includes(args.action)))return{status:'cancelled',reason:'host_cancelled'};
     if(name==='jev_session'){
       const {action,...rest}=args;
+      if(action==='connect')return this.sessions.connect();if(action==='tabs')return this.sessions.tabs();if(action==='attach')return this.sessions.attach(rest);
       if(action==='profiles')return this.sessions.profiles();if(action==='useProfile')return this.sessions.useProfile(rest.profileId);
       if(action==='open')return this.sessions.open(rest);if(action==='list')return this.sessions.list();if(action==='inspect'){const owner=this.sessionRuns.get(this.sessions.get(rest.sessionId).adapter.identity);if(owner)return{status:'running',reason:'TAB_BUSY',runId:owner};return this.sessions.inspect(rest.sessionId,rest);}
-      if(action==='act')return this.act(rest,options);if(action==='verifyAction')return this.verifyAction(rest);if(action==='close'){for(const id of this.controllers.keys()){const r=await this.store.read('runs',id);if(r.sessionId===rest.sessionId)throw Error('会话正在执行；先取消并等待动作核对结束');}return this.sessions.close(rest.sessionId);}throw Error('无效会话操作');
+      if(action==='act')return this.act(rest,options);if(action==='verifyAction')return this.verifyAction(rest);if(action==='close'||action==='detach'){for(const id of this.controllers.keys()){const r=await this.store.read('runs',id);if(r.sessionId===rest.sessionId)throw Error('会话正在执行；先取消并等待动作核对结束');}return this.sessions.close(rest.sessionId);}throw Error('无效会话操作');
     }
     if(name==='jev_run')return this.start(args.task||args,options);
     if(name==='jev_resume')return this.continue(args.runId,options.reattach!==undefined?options:{...options,reattach:args.reattach});

@@ -5,9 +5,22 @@ import {mkdir,chmod,readFile,readdir,stat} from 'node:fs/promises';
 import {acquire} from './locks.mjs';
 import {safeId,atomicJSON} from './storage.mjs';
 import {browserAdapter} from './browser-adapter.mjs';
+import {ExtensionBridge} from './extension-bridge.mjs';
+import {extensionAdapter} from './extension-adapter.mjs';
 
 export class Sessions {
   constructor(config,store){this.config=config;this.store=store;this.opened=new Map();}
+  async connect(){this.extension??=new ExtensionBridge(this.config);const info=await this.extension.connect();const current=await this.extension.perform('identity');return{...info,current,mode:'已有浏览器标签页'};}
+  async tabs(){await this.connect();return this.extension.perform('tabs');}
+  async attach({sessionId,targetId,allowedOrigins=[]}={}){
+    await this.connect();
+    const selected=targetId?await this.extension.select(targetId):await this.extension.perform('identity');
+    if(!allowedOrigins.length||!allowedOrigins.includes(new URL(selected.url).origin))throw Error('附着原网页需要明确允许其来源');
+    const id=sessionId?safeId(sessionId):randomUUID();if(this.opened.has(id))throw Error('会话已打开');
+    const adapter=extensionAdapter(this.extension,{targetId:selected.targetId,sessionId:id,allowedOrigins});
+    const record={id,profileId:null,mode:'已有浏览器标签页',targetId:selected.targetId,browserId:this.extension.browserId,label:selected.title,host:this.config.host,status:'open',allowedOrigins,physicalIdentity:adapter.identity,lastUrl:selected.url,createdAt:Date.now()};
+    this.opened.set(id,{adapter,record,release:async()=>{}});await this.store.write('sessions',id,record);return this.info(id);
+  }
   async defaultProfile(){
     try{
       const value=JSON.parse(await readFile(join(this.store.root,'browser-profile.json'),'utf8'));
@@ -72,7 +85,7 @@ export class Sessions {
     this.opened.set(id,{adapter,record:{id,profileId:null,label:'GPT 侧栏',host:this.config.host,status:'open',allowedOrigins:options.allowedOrigins||[],physicalIdentity:adapter.identity},release:async()=>{}});return id;
   }
   get(id){const session=this.opened.get(safeId(id));if(!session)throw Object.assign(Error('会话不在当前进程；请重新打开原登录档案并核对现场'),{code:'SESSION_NOT_OPEN'});return session;}
-  info(id){const {record}=this.get(id);return{...record,mode:record.profileId?'独立受控浏览器':'GPT 侧栏',version:this.config.version,buildFingerprint:this.config.buildFingerprint};}
+  info(id){const {record}=this.get(id);return{...record,mode:record.mode||(record.profileId?'独立受控浏览器':'GPT 侧栏'),version:this.config.version,buildFingerprint:this.config.buildFingerprint};}
   async inspect(id,options={}){
     const s=this.get(id),url=s.page?s.page.url():await s.adapter.observe().then(p=>p.url);
     if(s.record.allowedOrigins.length&&!s.record.allowedOrigins.includes(new URL(url).origin))return{status:'handoff',reason:'needs_origin',url};
@@ -81,5 +94,5 @@ export class Sessions {
   async list(){const rows=await this.store.list('sessions');return rows.map(r=>({...r,status:this.opened.has(r.id)?'open':'closed'}));}
   finishClosed(id,s){return s.closedPromise??=(async()=>{if(this.opened.get(id)===s)this.opened.delete(id);s.record.navigation=s.adapter.navigationState();s.record.status='closed';s.record.closedAt=Date.now();await s.release();await this.store.write('sessions',id,s.record);})();}
   async close(id){const s=this.get(id);await s.context?.close();await this.finishClosed(id,s);return{closed:true,profileRetained:true};}
-  async closeAll(){for(const id of [...this.opened.keys()])await this.close(id);}
+  async closeAll(){for(const id of [...this.opened.keys()])await this.close(id);await this.extension?.close();}
 }

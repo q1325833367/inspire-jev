@@ -26,6 +26,12 @@ test('宿主可使用观测定位信息采集同一目标，动作仍只接受�
 test('真实 DOM 大页面观测分批继续，保持有限候选',async()=>fixture('<body>'+Array.from({length:5000},(_,i)=>`<p><a href="#${i}">项目 ${i}</a></p>`).join('')+'</body>',async({adapter})=>{
   const first=await adapter.observe();assert.ok(first.coverage.scannedNodes<=500);assert.ok(first.actions.filter(a=>a.selector).length<=120);assert.ok(first.cursor);await adapter.expand(first);const next=await adapter.observe();assert.notEqual(first.cursor.selector,next.cursor.selector);assert.notEqual(first.actions[0].label,next.actions[0].label);
 }));
+test('SVG 装饰不耗尽业务候选遍历预算',async()=>fixture('<svg><defs>'+Array.from({length:2000},()=>'<path d="M0 0"></path>').join('')+'</defs></svg><button>新建流程</button>',async({adapter})=>{
+  const page=await adapter.observe();assert.ok(page.actions.some(a=>a.label==='新建流程'));assert.ok(page.coverage.scannedNodes<=500);
+}));
+test('可见对话框优先观测，背景控件不进入操作候选',async()=>fixture('<button>背景创建</button><div role="dialog" aria-modal="true"><button>从空白创建</button></div>',async({adapter})=>{
+  const p=await adapter.observe();assert.equal(p.coverage.candidateScope,'dialog');assert.ok(p.actions.some(a=>a.label==='从空白创建'));assert.ok(!p.actions.some(a=>a.label==='背景创建'));
+}));
 test('已知复选框值直接设置，避免反向切换',async()=>fixture('<label><input type="checkbox" checked>允许通知</label>',async({adapter,origin,page})=>{
   const result=await run(task(origin,[{kind:'checked',label:'允许通知',equals:false}]),adapter,{decide:()=>{throw Error('不得为已知状态调用模型');}});assert.equal(result.status,'verified');assert.equal(await page.locator('input').isChecked(),false);assert.equal(result.actions,1);
 }));
