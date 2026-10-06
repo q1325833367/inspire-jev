@@ -32,6 +32,9 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm run check
       - run: npm run check:secrets -- --history
+      - name: Windows 私密目录权限探针
+        if: runner.os == 'Windows'
+        run: node scripts/windows-permissions.mjs
       - run: npx playwright install --with-deps chromium
       - name: 为指定 Chromium 保留 Linux 沙箱能力
         if: runner.os == 'Linux'
