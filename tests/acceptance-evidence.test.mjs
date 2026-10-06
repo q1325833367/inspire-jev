@@ -44,3 +44,9 @@ test('真实 Chromium 观察器记录执行边界和耗时，输入不入日志�
   await writeFile(join(dir,'cancel.request'),'cancel');await new Promise(r=>setTimeout(r,1100));assert.equal((await agent.call('jev_session',{action:'open',url:origin,allowedOrigins:[origin],headless:true})).status,'cancelled');
  }finally{if(oldObserver===undefined)delete process.env.INSPIRE_JEV_TEST_OBSERVER;else process.env.INSPIRE_JEV_TEST_OBSERVER=oldObserver;if(oldContext===undefined)delete process.env.INSPIRE_JEV_ACCEPTANCE_CONTEXT;else process.env.INSPIRE_JEV_ACCEPTANCE_CONTEXT=oldContext;await agent?.close();await new Promise(r=>server.close(r));await rm(dir,{recursive:true,force:true});}
 });
+
+test('字段核验使用最后的完整现场，允许 HTML 日期微格式但不省略业务字段',()=>{
+ const url='https://en.wikipedia.org/wiki/Alan_Turing',fields=['Born actual birth','Education actual education','Known for actual contribution'];
+ const events=[{type:'snapshot',snapshot:{url,heading:'Alan Turing',fields:[]}},{type:'snapshot',snapshot:{url,heading:'Alan Turing',fields}},{type:'action',phase:'issued',kind:'fill',valueHash:hash('Alan Turing')},{type:'tool_end',collection:{url,title:'Alan Turing',fields:['Born actual (1912-06-23) birth',fields[1],fields[2]]}}];
+ assert.equal(checkBusiness('wiki-fields',events).passed,true);events.at(-1).collection.fields.splice(1,1);assert.equal(checkBusiness('wiki-fields',events).passed,false);
+});
