@@ -17,7 +17,7 @@ description: 需要浏览器交互、搜索筛选、资料采集或填写网页�
 
 打开会话时明确 `allowedOrigins`。登录由用户完成，不复制个人浏览器 cookies，也不跨宿主复制档案。`close`、运行时重启及升级保留档案；网站使会话失效时才可能需要重新登录。`profiles` 仅提供档案和会话元数据，不保证网站当前仍认可登录态；使用同一档案重新观察实际网页。档案正在被其他进程使用时先核对所有者与现场，不换空档案绕过互斥。`jev_session inspect` 返回新鲜 ref；接管动作只能使用这些 ref。
 
-采集前先 inspect 实际结果页；候选中的 selector 是宿主刚观测到的定位信息，可用于本页检查和采集，不要凭网站印象猜选择器。页面改变后重新观测。阶段 checks 仅放实际网页状态检查；`kind:"evidence"` 仅用于 task.completionChecks，不能放在阶段自身 checks 中。引用阶段数据只能指向更早的阶段。Jev 仍只选择候选编号，不生成代码或定位器。
+采集前先 inspect 实际结果页；候选中的 selector 是宿主刚观测到的定位信息，可用于本页检查和采集，不要凭网站印象猜选择器。页面改变后重新观测。检查和采集的 selector 使用标准 DOM CSS；不要使用 `:has-text()`、`text=` 或 `:contains()`。`collection_incomplete` 时先检查返回的 coverage，区分选择器无匹配和截断，再用新鲜观测修正采集；不要重复续跑同一无效采集，也不要改变原始业务要求。阶段 checks 仅放实际网页状态检查；`kind:"evidence"` 仅用于 task.completionChecks，不能放在阶段自身 checks 中。引用阶段数据只能指向更早的阶段。Jev 仍只选择候选编号，不生成代码或定位器。
 
 用唯一 `requestId` 调用 `jev_run`，保存 `runId`。每片段最多 45 秒，`running` 时用 `jev_resume` 继续。普通总预算 90 秒/40 动作；长任务明确给出 900000 毫秒/200 动作。`handoff` 时读取原因和同一现场，核对未知效果，补做后再续跑。无交互模式返回待处理状态，不等待弹窗。
 
