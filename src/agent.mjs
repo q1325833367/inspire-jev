@@ -7,11 +7,14 @@ import {run,resume,validateTask,resolveChecks} from './core.mjs';
 import {createServices,loadConfig} from './providers.mjs';
 import {acquire} from './locks.mjs';
 import {localTrace} from './runtime.mjs';
+import {sourceDigest,packageRoot} from './release-files.mjs';
+import {verificationChecksSchema} from './tools.mjs';
 
 const digest=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
 export class Agent {
   static async create(overrides={}){
     const config=await settings({host:'mcp',version:VERSION,...overrides});safeId(config.host);
+    config.buildFingerprint=await sourceDigest(packageRoot);
     const store=await new Store(config.home,config.host).init();
     await store.cleanup({dryRun:false});
     return new Agent(config,store,overrides.services);
@@ -22,7 +25,7 @@ export class Agent {
     const r=record.result||record.progress||{};
     return{runId:record.runId,sessionId:record.sessionId,requestId:record.requestId,status:record.status,active:!!record.active,reason:r.reason,detail:r.detail,
       completed:r.completed,remaining:r.remaining,actions:r.actions,handoffs:r.handoffs,elapsed_ms:r.elapsed_ms,metrics:r.metrics,data:r.data,proof:r.proof,url:r.url,
-      checkpointId:record.checkpoint?record.runId:undefined,traceFile:r.traceFile,versions:r.versions||{engine:VERSION},browserMode:record.browserMode};
+      checkpointId:record.checkpoint?record.runId:undefined,traceFile:r.traceFile,versions:{...(r.versions||{}),engine:VERSION,buildFingerprint:this.config.buildFingerprint,host:this.config.host},browserMode:record.browserMode};
   }
   async start(task,{signal,onProgress}={}){
     if(!task.sessionId||!task.requestId)throw Error('任务需要 sessionId 和 requestId');safeId(task.requestId);validateTask(task);
@@ -31,6 +34,7 @@ export class Agent {
       let request;try{request=await this.store.read('requests',task.requestId);}catch(e){if(e.code!=='ENOENT')throw e;}
       if(request){if(request.digest!==digest(task))throw Error('调用编号已经绑定其他任务');if(request.archived)return{runId:request.runId,status:request.status,archived:true,reason:'completed_checkpoint_expired'};return this.status(request.runId);}
       const session=this.sessions.get(task.sessionId);
+      const unknown=await this.unknownSubmission(task.sessionId);if(unknown)return unknown;
       if(task.allowedOrigins.some(o=>!session.record.allowedOrigins.includes(o)))throw Error('任务不能扩大会话允许来源');
       record={runId:randomUUID(),sessionId:task.sessionId,requestId:task.requestId,task,status:'starting',active:false,browserMode:session.record.profileId?'独立受控浏览器':'GPT 侧栏'};
       await this.store.write('runs',record.runId,record);await this.store.write('requests',task.requestId,{runId:record.runId,digest:digest(task)});
@@ -39,6 +43,7 @@ export class Agent {
   }
   async continue(runId,options={}){
     const record=await this.store.read('runs',safeId(runId));if(record.status==='verified')return this.summary(record);
+    const unknown=await this.unknownSubmission(record.sessionId);if(unknown)return{...this.summary(record),...unknown};
     if(record.active&&this.controllers.has(runId))return this.summary(record);
     if(!record.checkpoint){if(record.result?.reason==='TAB_BUSY')return this.drive(record,false,options);throw Error('尚无检查点，不能恢复未知的启动状态');}
     const session=this.sessions.get(record.sessionId);
@@ -73,29 +78,59 @@ export class Agent {
   }
   async status(runId){return this.summary(await this.store.read('runs',safeId(runId)));}
   async cancel(runId){safeId(runId);const controller=this.controllers.get(runId);if(controller){controller.abort();return{runId,cancellationRequested:true};}const r=await this.store.read('runs',runId);if(r.status==='verified')return{runId,status:'verified',cancellationRequested:false};r.status='cancelled';r.active=false;if(r.checkpoint)r.checkpoint.status='cancelled';await this.store.write('runs',runId,r);return this.summary(r);}
+  async unknownSubmission(sessionId){
+    const profileId=this.sessions.get(sessionId).record.profileId;
+    const pending=(await this.store.list('supervisor')).find(e=>(e.sessionId===sessionId||profileId&&e.profileId===profileId)&&e.isSubmit&&e.issued&&e.effect!=='effect_observed');
+    return pending?{status:'handoff',reason:'uncertain_action',actionId:pending.id,requiresVerification:true}:null;
+  }
   async act({sessionId,ref,value,authorizedSubmit=false,runId},options={}){
+    const unknown=await this.unknownSubmission(sessionId);if(unknown)return unknown;
     const s=this.sessions.get(sessionId),action=s.adapter.resolveRef(ref);
     if(action.isSubmit&&!authorizedSubmit)return{status:'handoff',reason:'submit_authorization_required'};
     if(action.frameUrl&&!s.record.allowedOrigins.includes(action.frameOrigin||new URL(action.frameUrl).origin))throw Error('目标 frame 来源未授权');
     if(action.href&&!s.record.allowedOrigins.includes(new URL(action.href,action.documentUrl||s.record.lastUrl).origin))throw Error('目标来源未授权');
     if(['click','press'].includes(action.kind)&&action.formAction&&!s.record.allowedOrigins.includes(new URL(action.formAction).origin))throw Error('表单提交来源未授权');
-    const id=randomUUID(),release=await acquire(s.adapter.identity,id);const entry={id,sessionId,runId,kind:action.kind,issued:false,effect:'unknown',startedAt:Date.now()};
+    const id=randomUUID(),release=await acquire(s.adapter.identity,id);
+    const intent={kind:action.kind,selector:action.selector,href:action.href,documentId:action.documentId,documentUrl:action.documentUrl,frameIndex:action.frameIndex,
+      label:action.kind==='select'?action.label:undefined,expectedHash:action.kind==='fill'?createHash('sha256').update(String(value)).digest('hex'):undefined,expectedValue:action.kind==='check'?Boolean(value):undefined};
+    const entry={id,sessionId,profileId:s.record.profileId,runId,kind:action.kind,isSubmit:!!action.isSubmit,issued:false,phase:'prepared',effect:'unknown',startedAt:Date.now(),intent,allowedOrigins:s.record.allowedOrigins};
     try{
       if(options.signal?.aborted)return{status:'cancelled'};
       if(!(await s.adapter.validate(action)).ok)return{status:'handoff',reason:'target_changed'};
-      await this.store.write('supervisor',id,entry);entry.issued=true;await this.store.write('supervisor',id,entry);
+      await this.store.write('supervisor',id,entry);
+      if(options.signal?.aborted){entry.phase='not_issued';entry.effect='not_executed';await this.store.write('supervisor',id,entry);return{status:'cancelled',actionId:id,effect:entry.effect};}
+      entry.issued=true;entry.phase='dispatching';await this.store.write('supervisor',id,entry);
       await s.adapter.execute(action,value,{signal:options.signal,alreadyValidated:true});
-      entry.effect='issued';entry.finishedAt=Date.now();await this.store.write('supervisor',id,entry);
-      return{status:'executed',actionId:id,requiresVerification:true,page:await this.sessions.inspect(sessionId)};
-    }catch(e){entry.error=e.message;await this.store.write('supervisor',id,entry);return{status:'handoff',reason:entry.issued?'uncertain_action':'runtime_error',actionId:id};}
+      entry.phase='acknowledged';entry.finishedAt=Date.now();await this.store.write('supervisor',id,entry);
+      const page=await this.sessions.inspect(sessionId),effect=await s.adapter.checkAction(intent);
+      if(effect.ok){entry.effect='effect_observed';entry.verifiedAt=Date.now();}
+      await this.store.write('supervisor',id,entry);
+      return{status:'executed',actionId:id,effect:entry.effect,requiresVerification:entry.effect!=='effect_observed',page};
+    }catch(e){if(e.notIssued){entry.issued=false;entry.phase='not_issued';entry.effect='not_executed';}entry.error=e.code||e.name;await this.store.write('supervisor',id,entry);return{status:'handoff',reason:entry.issued?'uncertain_action':'runtime_error',actionId:id,effect:entry.effect};}
     finally{await release();}
+  }
+  async verifyAction({sessionId,actionId,checks=[]}){
+    const s=this.sessions.get(sessionId),entry=await this.store.read('supervisor',safeId(actionId));
+    if(entry.sessionId!==sessionId)throw Error('动作不属于当前会话');
+    if(entry.effect==='not_executed')return{status:'not_executed',actionId,effect:entry.effect};
+    if(entry.effect==='effect_observed')return{status:'verified',actionId,effect:entry.effect,scope:'action'};
+    if(checks.length)verificationChecksSchema.parse(checks);
+    const release=await acquire(s.adapter.identity,actionId);
+    try{
+      const observed=await s.adapter.observe();
+      if(!s.record.allowedOrigins.includes(new URL(observed.url).origin)||entry.allowedOrigins&&!entry.allowedOrigins.includes(new URL(observed.url).origin))return{status:'handoff',reason:'needs_origin',actionId};
+      const evidence=checks.length?await s.adapter.check(checks):await s.adapter.checkAction(entry.intent||{});
+      if(!evidence.ok)return{status:'handoff',reason:'uncertain_action',actionId,effect:'unknown'};
+      entry.effect='effect_observed';entry.verifiedAt=Date.now();await this.store.write('supervisor',actionId,entry);
+      return{status:'verified',actionId,effect:entry.effect,scope:'action'};
+    }finally{await release();}
   }
   async call(name,args={},options={}){
     if(name==='jev_session'){
       const {action,...rest}=args;
       if(action==='profiles')return this.sessions.profiles();if(action==='useProfile')return this.sessions.useProfile(rest.profileId);
       if(action==='open')return this.sessions.open(rest);if(action==='list')return this.sessions.list();if(action==='inspect'){const owner=this.sessionRuns.get(this.sessions.get(rest.sessionId).adapter.identity);if(owner)return{status:'running',reason:'TAB_BUSY',runId:owner};return this.sessions.inspect(rest.sessionId,rest);}
-      if(action==='act')return this.act(rest,options);if(action==='close'){for(const id of this.controllers.keys()){const r=await this.store.read('runs',id);if(r.sessionId===rest.sessionId)throw Error('会话正在执行；先取消并等待动作核对结束');}return this.sessions.close(rest.sessionId);}throw Error('无效会话操作');
+      if(action==='act')return this.act(rest,options);if(action==='verifyAction')return this.verifyAction(rest);if(action==='close'){for(const id of this.controllers.keys()){const r=await this.store.read('runs',id);if(r.sessionId===rest.sessionId)throw Error('会话正在执行；先取消并等待动作核对结束');}return this.sessions.close(rest.sessionId);}throw Error('无效会话操作');
     }
     if(name==='jev_run')return this.start(args.task||args,options);
     if(name==='jev_resume')return this.continue(args.runId,options.reattach!==undefined?options:{...options,reattach:args.reattach});

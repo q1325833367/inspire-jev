@@ -27,7 +27,7 @@ export class Sessions {
     let selected,defaultError;try{selected=await this.defaultProfile();}catch(e){defaultError=e.code;}
     const sessions=await this.store.list('sessions');
     const directories=await readdir(join(this.store.root,'profiles'),{withFileTypes:true});
-    return{host:this.config.host,defaultProfileId:selected,defaultError,profiles:directories.filter(d=>d.isDirectory()).map(d=>{
+    return{host:this.config.host,version:this.config.version,buildFingerprint:this.config.buildFingerprint,defaultProfileId:selected,defaultError,profiles:directories.filter(d=>d.isDirectory()).map(d=>{
       const records=sessions.filter(s=>s.profileId===d.name).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)),last=records[0];
       return{profileId:d.name,isDefault:d.name===selected,openSessionIds:[...this.opened.values()].filter(s=>s.record.profileId===d.name).map(s=>s.record.id),label:last?.label,lastUrl:last?.lastUrl,updatedAt:last?.updatedAt};
     })};
@@ -71,7 +71,7 @@ export class Sessions {
     this.opened.set(id,{adapter,record:{id,profileId:null,label:'GPT 侧栏',host:this.config.host,status:'open',allowedOrigins:options.allowedOrigins||[],physicalIdentity:adapter.identity},release:async()=>{}});return id;
   }
   get(id){const session=this.opened.get(safeId(id));if(!session)throw Object.assign(Error('会话不在当前进程；请重新打开原登录档案并核对现场'),{code:'SESSION_NOT_OPEN'});return session;}
-  info(id){const {record}=this.get(id);return{...record,mode:record.profileId?'独立受控浏览器':'GPT 侧栏',version:this.config.version};}
+  info(id){const {record}=this.get(id);return{...record,mode:record.profileId?'独立受控浏览器':'GPT 侧栏',version:this.config.version,buildFingerprint:this.config.buildFingerprint};}
   async inspect(id,options={}){
     const s=this.get(id),url=s.page?s.page.url():await s.adapter.observe().then(p=>p.url);
     if(s.record.allowedOrigins.length&&!s.record.allowedOrigins.includes(new URL(url).origin))return{status:'handoff',reason:'needs_origin',url};
