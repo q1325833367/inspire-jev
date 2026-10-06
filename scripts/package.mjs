@@ -12,7 +12,7 @@ try{await stat(join(destination,`${pkg.name}-${pkg.version}.tgz`));throw Error('
 const packed=JSON.parse(runCommand('npm',['pack','--json','--ignore-scripts','--pack-destination',destination],{stdio:'pipe'}).stdout.toString())[0];
 const names=packed.files.map(f=>f.path);
 for(const required of ['src/cli.mjs','scripts/linux-sandbox.mjs','integrations/pi/index.ts','skills/jev-browser/SKILL.md','plugin.json','mcp.json','README.md','README.en.md','LICENSE','NOTICE','npm-shrinkwrap.json'])if(!names.includes(required))throw Error(`安装包缺少 ${required}`);
-const forbidden=names.filter(name=>/(?:^|\/)(?:node_modules|artifacts|\.git|\.env(?:\..*)?|config\.json|credentials\.env|profiles|private-backups)(?:\/|$)/.test(name));
+const forbidden=names.filter(name=>/(?:^|\/)(?:node_modules|artifacts|\.git|\.env(?:\..*)?|\.venv[^/]*|__pycache__|config\.json|credentials\.env|profiles|private-backups)(?:\/|$)/.test(name)||name.endsWith('.pyc'));
 if(forbidden.length)throw Error('安装包包含私密或运行时目录');
 const archive=join(destination,packed.filename);
 runCommand(process.execPath,['scripts/scan-secrets.mjs','--archive',archive]);

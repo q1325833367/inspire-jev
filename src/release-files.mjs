@@ -15,7 +15,7 @@ export async function sourceDigest(root,{portable=true}={}){
       if(error.code==='ENOENT')return;
       throw error;
     }
-    for(const row of rows.sort((a,b)=>a.name.localeCompare(b.name)))await add(join(path,row.name));
+    for(const row of rows.sort((a,b)=>a.name.localeCompare(b.name))){if(row.name==='__pycache__'||row.name.endsWith('.pyc'))continue;await add(join(path,row.name));}
   }
   for(const name of publicFiles)await add(name);
   return hash.digest('hex');

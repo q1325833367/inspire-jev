@@ -1,0 +1,2030 @@
+{
+  "protocol": {
+    "kind": "SDK/执行核心开发对照，非主 Agent 端到端性能",
+    "at": "2026-10-06T09:47:11.762Z",
+    "runtimeMetadata": {
+      "laya": {
+        "status": "ok",
+        "loaded": [
+          "multilingual"
+        ],
+        "revisions": {
+          "multilingual": "1720e3e3357cfe1e281542e223f8273b0890ca34"
+        },
+        "device": "mps",
+        "device_is_preference": false,
+        "checkpoint_devices": {
+          "multilingual": "mps"
+        },
+        "cpu_fallbacks": {
+          "multilingual": {
+            "count": 0,
+            "last_reason": null
+          }
+        }
+      },
+      "kev": {
+        "models": [
+          {
+            "name": "kev-latest",
+            "description": "Kev pointer head on Qwen/Qwen2.5-0.5B, serving jaredpalmer/kev-0.5b@9ce2fd39db3a397c89733f94af948e3d1fdfffcd at temperature 1.00",
+            "release_date": "2026-09-20",
+            "run": "jaredpalmer/kev-0.5b@9ce2fd39db3a397c89733f94af948e3d1fdfffcd",
+            "base": "Qwen/Qwen2.5-0.5B",
+            "lora": 16,
+            "device": "mps",
+            "backend": "torch",
+            "dtype": "float32",
+            "temperature": 1,
+            "max_state_tokens": 65536,
+            "truncate_states": false,
+            "cuda_graphs": null,
+            "prefix_cache": {
+              "size": 4,
+              "min_state_tokens": 384,
+              "max_tokens": 65536,
+              "hits": 18,
+              "misses": 15,
+              "cached_states": 4,
+              "oom_retries": 0
+            },
+            "batches": {
+              "count": 33,
+              "requests": 33,
+              "queued": 0
+            }
+          },
+          {
+            "name": "jev-latest",
+            "description": "Kev pointer head on Qwen/Qwen2.5-0.5B, serving jaredpalmer/kev-0.5b@9ce2fd39db3a397c89733f94af948e3d1fdfffcd at temperature 1.00",
+            "release_date": "2026-09-20",
+            "run": "jaredpalmer/kev-0.5b@9ce2fd39db3a397c89733f94af948e3d1fdfffcd",
+            "base": "Qwen/Qwen2.5-0.5B",
+            "lora": 16,
+            "device": "mps",
+            "backend": "torch",
+            "dtype": "float32",
+            "temperature": 1,
+            "max_state_tokens": 65536,
+            "truncate_states": false,
+            "cuda_graphs": null,
+            "prefix_cache": {
+              "size": 4,
+              "min_state_tokens": 384,
+              "max_tokens": 65536,
+              "hits": 18,
+              "misses": 15,
+              "cached_states": 4,
+              "oom_retries": 0
+            },
+            "batches": {
+              "count": 33,
+              "requests": 33,
+              "queued": 0
+            }
+          }
+        ]
+      },
+      "semif": {
+        "model": "semif/Qwen/Qwen3.5-4B@851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a",
+        "backend": "mlx",
+        "load_seconds": 7.0096814999124035,
+        "max_tokens": 16384,
+        "max_candidates": 256
+      }
+    },
+    "observationLimits": {
+      "maxCandidates": 36,
+      "maxText": 1200
+    },
+    "contextSha256": "82b658d425c4060ff742d85f76b8fed19916f11596297cdcfd7c2f5d342b048e",
+    "cases": [
+      {
+        "id": "gutenberg-ranking",
+        "url": "https://www.gutenberg.org/",
+        "candidates": 29,
+        "coverage": {
+          "candidateScope": "batch",
+          "scannedNodes": 101,
+          "truncated": true,
+          "offscreen": 0,
+          "hidden": 5,
+          "sensitive": 0,
+          "loginForms": 0,
+          "totalCandidates": 29,
+          "visibleCandidates": 26,
+          "scrollRegions": [
+            {
+              "selector": null,
+              "label": "页面",
+              "y": 0,
+              "height": 15182,
+              "viewport": 900,
+              "x": 640,
+              "cy": 450
+            }
+          ],
+          "elapsed_ms": 31.899999976158142,
+          "unsupported": {
+            "canvas": 0,
+            "frames": 0
+          }
+        },
+        "gold": {
+          "operation": "CLICK",
+          "targets": [
+            "e12",
+            "e16"
+          ]
+        }
+      },
+      {
+        "id": "books-travel",
+        "url": "https://books.toscrape.com/",
+        "candidates": 29,
+        "coverage": {
+          "candidateScope": "batch",
+          "scannedNodes": 66,
+          "truncated": true,
+          "offscreen": 0,
+          "hidden": 0,
+          "sensitive": 0,
+          "loginForms": 0,
+          "totalCandidates": 29,
+          "visibleCandidates": 26,
+          "scrollRegions": [
+            {
+              "selector": null,
+              "label": "页面",
+              "y": 0,
+              "height": 2569,
+              "viewport": 900,
+              "x": 640,
+              "cy": 450
+            }
+          ],
+          "elapsed_ms": 0.9000000953674316,
+          "unsupported": {
+            "canvas": 0,
+            "frames": 0
+          }
+        },
+        "gold": {
+          "operation": "CLICK",
+          "targets": [
+            "e4"
+          ]
+        }
+      },
+      {
+        "id": "wiki-section",
+        "url": "https://en.wikipedia.org/wiki/Alan_Turing",
+        "candidates": 29,
+        "coverage": {
+          "candidateScope": "batch",
+          "scannedNodes": 360,
+          "truncated": true,
+          "offscreen": 1,
+          "hidden": 44,
+          "sensitive": 0,
+          "loginForms": 0,
+          "totalCandidates": 29,
+          "visibleCandidates": 25,
+          "scrollRegions": [
+            {
+              "selector": null,
+              "label": "页面",
+              "y": 0,
+              "height": 41429,
+              "viewport": 900,
+              "x": 640,
+              "cy": 450
+            }
+          ],
+          "elapsed_ms": 2.899999976158142,
+          "unsupported": {
+            "canvas": 0,
+            "frames": 0
+          }
+        },
+        "gold": {
+          "operation": "CLICK",
+          "targets": [
+            "e17"
+          ]
+        }
+      }
+    ],
+    "repeats": 3,
+    "order": "每次重复轮转 cloud/laya/kev/semif；保留全部失败",
+    "taskBudget": {
+      "totalMs": 90000,
+      "maxActions": 40,
+      "sliceMs": 45000
+    }
+  },
+  "records": [
+    {
+      "case": "gutenberg-ranking",
+      "repeat": 1,
+      "model": "cloud",
+      "ms": 802.058583,
+      "passed": true,
+      "result": {
+        "operation": "CLICK",
+        "target": "e12",
+        "model": "jev-1.13.0",
+        "provider": "typesafe",
+        "latency_ms": 802,
+        "usage": {
+          "input_tokens": 4620,
+          "output_tokens": 427
+        }
+      }
+    },
+    {
+      "case": "gutenberg-ranking",
+      "repeat": 1,
+      "model": "laya",
+      "ms": 941.6639590000004,
+      "passed": false,
+      "error": {
+        "code": "MODEL_HTTP_ERROR",
+        "provider": "local",
+        "message": "local 模型接口 HTTP 422"
+      }
+    },
+    {
+      "case": "gutenberg-ranking",
+      "repeat": 1,
+      "model": "kev",
+      "ms": 530.6158749999995,
+      "passed": false,
+      "result": {
+        "operation": "DONE",
+        "model": "kev-latest",
+        "provider": "local",
+        "latency_ms": 531,
+        "usage": {
+          "input_tokens": 2782,
+          "output_tokens": 649
+        }
+      }
+    },
+    {
+      "case": "gutenberg-ranking",
+      "repeat": 1,
+      "model": "semif",
+      "ms": 4362.406334,
+      "passed": false,
+      "result": {
+        "operation": "DONE",
+        "model": "semif/Qwen/Qwen3.5-4B@851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a",
+        "provider": "local",
+        "latency_ms": 4362,
+        "usage": {
+          "input_tokens": 9152,
+          "decision_heads": 4
+        },
+        "readout": "native logits; >16 options: group probability × conditional option probability"
+      }
+    },
+    {
+      "case": "books-travel",
+      "repeat": 1,
+      "model": "cloud",
+      "ms": 832.247041999999,
+      "passed": true,
+      "result": {
+        "operation": "CLICK",
+        "target": "e4",
+        "model": "jev-1.13.0",
+        "provider": "typesafe",
+        "latency_ms": 832,
+        "usage": {
+          "input_tokens": 4210,
+          "output_tokens": 378
+        }
+      }
+    },
+    {
+      "case": "books-travel",
+      "repeat": 1,
+      "model": "laya",
+      "ms": 768.8801249999997,
+      "passed": false,
+      "error": {
+        "code": "MODEL_HTTP_ERROR",
+        "provider": "local",
+        "message": "local 模型接口 HTTP 422"
+      }
+    },
+    {
+      "case": "books-travel",
+      "repeat": 1,
+      "model": "kev",
+      "ms": 421.4936660000003,
+      "passed": false,
+      "result": {
+        "operation": "DONE",
+        "model": "kev-latest",
+        "provider": "local",
+        "latency_ms": 421,
+        "usage": {
+          "input_tokens": 2427,
+          "output_tokens": 576
+        }
+      }
+    },
+    {
+      "case": "books-travel",
+      "repeat": 1,
+      "model": "semif",
+      "ms": 4486.107833000002,
+      "passed": true,
+      "result": {
+        "operation": "CLICK",
+        "target": "e4",
+        "model": "semif/Qwen/Qwen3.5-4B@851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a",
+        "provider": "local",
+        "latency_ms": 4486,
+        "usage": {
+          "input_tokens": 8483,
+          "decision_heads": 4
+        },
+        "readout": "native logits; >16 options: group probability × conditional option probability"
+      }
+    },
+    {
+      "case": "wiki-section",
+      "repeat": 1,
+      "model": "cloud",
+      "ms": 788.4056249999994,
+      "passed": true,
+      "result": {
+        "operation": "CLICK",
+        "target": "e17",
+        "model": "jev-1.13.0",
+        "provider": "typesafe",
+        "latency_ms": 788,
+        "usage": {
+          "input_tokens": 4309,
+          "output_tokens": 427
+        }
+      }
+    },
+    {
+      "case": "wiki-section",
+      "repeat": 1,
+      "model": "laya",
+      "ms": 672.1193340000027,
+      "passed": false,
+      "error": {
+        "code": "MODEL_HTTP_ERROR",
+        "provider": "local",
+        "message": "local 模型接口 HTTP 422"
+      }
+    },
+    {
+      "case": "wiki-section",
+      "repeat": 1,
+      "model": "kev",
+      "ms": 374.77537499999744,
+      "passed": true,
+      "result": {
+        "operation": "CLICK",
+        "target": "e17",
+        "model": "kev-latest",
+        "provider": "local",
+        "latency_ms": 375,
+        "usage": {
+          "input_tokens": 2547,
+          "output_tokens": 653
+        }
+      }
+    },
+    {
+      "case": "wiki-section",
+      "repeat": 1,
+      "model": "semif",
+      "ms": 3999.5985419999997,
+      "passed": true,
+      "result": {
+        "operation": "CLICK",
+        "target": "e17",
+        "model": "semif/Qwen/Qwen3.5-4B@851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a",
+        "provider": "local",
+        "latency_ms": 4000,
+        "usage": {
+          "input_tokens": 8302,
+          "decision_heads": 4
+        },
+        "readout": "native logits; >16 options: group probability × conditional option probability"
+      }
+    },
+    {
+      "case": "gutenberg-ranking",
+      "repeat": 2,
+      "model": "laya",
+      "ms": 834.3480420000014,
+      "passed": false,
+      "error": {
+        "code": "MODEL_HTTP_ERROR",
+        "provider": "local",
+        "message": "local 模型接口 HTTP 422"
+      }
+    },
+    {
+      "case": "gutenberg-ranking",
+      "repeat": 2,
+      "model": "kev",
+      "ms": 313.65625,
+      "passed": false,
+      "result": {
+        "operation": "DONE",
+        "model": "kev-latest",
+        "provider": "local",
+        "latency_ms": 314,
+        "usage": {
+          "input_tokens": 2782,
+          "output_tokens": 649
+        }
+      }
+    },
+    {
+      "case": "gutenberg-ranking",
+      "repeat": 2,
+      "model": "semif",
+      "ms": 4335.036582999997,
+      "passed": false,
+      "result": {
+        "operation": "DONE",
+        "model": "semif/Qwen/Qwen3.5-4B@851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a",
+        "provider": "local",
+        "latency_ms": 4335,
+        "usage": {
+          "input_tokens": 9152,
+          "decision_heads": 4
+        },
+        "readout": "native logits; >16 options: group probability × conditional option probability"
+      }
+    },
+    {
+      "case": "gutenberg-ranking",
+      "repeat": 2,
+      "model": "cloud",
+      "ms": 805.1784589999988,
+      "passed": true,
+      "result": {
+        "operation": "CLICK",
+        "target": "e12",
+        "model": "jev-1.13.0",
+        "provider": "typesafe",
+        "latency_ms": 805,
+        "usage": {
+          "input_tokens": 4620,
+          "output_tokens": 427
+        }
+      }
+    },
+    {
+      "case": "books-travel",
+      "repeat": 2,
+      "model": "laya",
+      "ms": 667.7440419999984,
+      "passed": false,
+      "error": {
+        "code": "MODEL_HTTP_ERROR",
+        "provider": "local",
+        "message": "local 模型接口 HTTP 422"
+      }
+    },
+    {
+      "case": "books-travel",
+      "repeat": 2,
+      "model": "kev",
+      "ms": 260.3892909999995,
+      "passed": false,
+      "result": {
+        "operation": "DONE",
+        "model": "kev-latest",
+        "provider": "local",
+        "latency_ms": 260,
+        "usage": {
+          "input_tokens": 2427,
+          "output_tokens": 576
+        }
+      }
+    },
+    {
+      "case": "books-travel",
+      "repeat": 2,
+      "model": "semif",
+      "ms": 4498.324125000003,
+      "passed": true,
+      "result": {
+        "operation": "CLICK",
+        "target": "e4",
+        "model": "semif/Qwen/Qwen3.5-4B@851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a",
+        "provider": "local",
+        "latency_ms": 4498,
+        "usage": {
+          "input_tokens": 8483,
+          "decision_heads": 4
+        },
+        "readout": "native logits; >16 options: group probability × conditional option probability"
+      }
+    },
+    {
+      "case": "books-travel",
+      "repeat": 2,
+      "model": "cloud",
+      "ms": 793.7364170000001,
+      "passed": true,
+      "result": {
+        "operation": "CLICK",
+        "target": "e4",
+        "model": "jev-1.13.0",
+        "provider": "typesafe",
+        "latency_ms": 794,
+        "usage": {
+          "input_tokens": 4210,
+          "output_tokens": 378
+        }
+      }
+    },
+    {
+      "case": "wiki-section",
+      "repeat": 2,
+      "model": "laya",
+      "ms": 657.1981250000026,
+      "passed": false,
+      "error": {
+        "code": "MODEL_HTTP_ERROR",
+        "provider": "local",
+        "message": "local 模型接口 HTTP 422"
+      }
+    },
+    {
+      "case": "wiki-section",
+      "repeat": 2,
+      "model": "kev",
+      "ms": 256.19320800000423,
+      "passed": true,
+      "result": {
+        "operation": "CLICK",
+        "target": "e17",
+        "model": "kev-latest",
+        "provider": "local",
+        "latency_ms": 256,
+        "usage": {
+          "input_tokens": 2547,
+          "output_tokens": 653
+        }
+      }
+    },
+    {
+      "case": "wiki-section",
+      "repeat": 2,
+      "model": "semif",
+      "ms": 4000.810458,
+      "passed": true,
+      "result": {
+        "operation": "CLICK",
+        "target": "e17",
+        "model": "semif/Qwen/Qwen3.5-4B@851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a",
+        "provider": "local",
+        "latency_ms": 4001,
+        "usage": {
+          "input_tokens": 8302,
+          "decision_heads": 4
+        },
+        "readout": "native logits; >16 options: group probability × conditional option probability"
+      }
+    },
+    {
+      "case": "wiki-section",
+      "repeat": 2,
+      "model": "cloud",
+      "ms": 771.4353340000016,
+      "passed": true,
+      "result": {
+        "operation": "CLICK",
+        "target": "e17",
+        "model": "jev-1.13.0",
+        "provider": "typesafe",
+        "latency_ms": 771,
+        "usage": {
+          "input_tokens": 4309,
+          "output_tokens": 427
+        }
+      }
+    },
+    {
+      "case": "gutenberg-ranking",
+      "repeat": 3,
+      "model": "kev",
+      "ms": 309.833166000004,
+      "passed": false,
+      "result": {
+        "operation": "DONE",
+        "model": "kev-latest",
+        "provider": "local",
+        "latency_ms": 310,
+        "usage": {
+          "input_tokens": 2782,
+          "output_tokens": 649
+        }
+      }
+    },
+    {
+      "case": "gutenberg-ranking",
+      "repeat": 3,
+      "model": "semif",
+      "ms": 4326.693290999996,
+      "passed": false,
+      "result": {
+        "operation": "DONE",
+        "model": "semif/Qwen/Qwen3.5-4B@851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a",
+        "provider": "local",
+        "latency_ms": 4327,
+        "usage": {
+          "input_tokens": 9152,
+          "decision_heads": 4
+        },
+        "readout": "native logits; >16 options: group probability × conditional option probability"
+      }
+    },
+    {
+      "case": "gutenberg-ranking",
+      "repeat": 3,
+      "model": "cloud",
+      "ms": 785.3432079999984,
+      "passed": true,
+      "result": {
+        "operation": "CLICK",
+        "target": "e12",
+        "model": "jev-1.13.0",
+        "provider": "typesafe",
+        "latency_ms": 785,
+        "usage": {
+          "input_tokens": 4620,
+          "output_tokens": 427
+        }
+      }
+    },
+    {
+      "case": "gutenberg-ranking",
+      "repeat": 3,
+      "model": "laya",
+      "ms": 868.6320420000047,
+      "passed": false,
+      "error": {
+        "code": "MODEL_HTTP_ERROR",
+        "provider": "local",
+        "message": "local 模型接口 HTTP 422"
+      }
+    },
+    {
+      "case": "books-travel",
+      "repeat": 3,
+      "model": "kev",
+      "ms": 260.1972500000047,
+      "passed": false,
+      "result": {
+        "operation": "DONE",
+        "model": "kev-latest",
+        "provider": "local",
+        "latency_ms": 260,
+        "usage": {
+          "input_tokens": 2427,
+          "output_tokens": 576
+        }
+      }
+    },
+    {
+      "case": "books-travel",
+      "repeat": 3,
+      "model": "semif",
+      "ms": 4495.733124999999,
+      "passed": true,
+      "result": {
+        "operation": "CLICK",
+        "target": "e4",
+        "model": "semif/Qwen/Qwen3.5-4B@851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a",
+        "provider": "local",
+        "latency_ms": 4496,
+        "usage": {
+          "input_tokens": 8483,
+          "decision_heads": 4
+        },
+        "readout": "native logits; >16 options: group probability × conditional option probability"
+      }
+    },
+    {
+      "case": "books-travel",
+      "repeat": 3,
+      "model": "cloud",
+      "ms": 797.0417499999967,
+      "passed": true,
+      "result": {
+        "operation": "CLICK",
+        "target": "e4",
+        "model": "jev-1.13.0",
+        "provider": "typesafe",
+        "latency_ms": 797,
+        "usage": {
+          "input_tokens": 4210,
+          "output_tokens": 378
+        }
+      }
+    },
+    {
+      "case": "books-travel",
+      "repeat": 3,
+      "model": "laya",
+      "ms": 670.0871670000051,
+      "passed": false,
+      "error": {
+        "code": "MODEL_HTTP_ERROR",
+        "provider": "local",
+        "message": "local 模型接口 HTTP 422"
+      }
+    },
+    {
+      "case": "wiki-section",
+      "repeat": 3,
+      "model": "kev",
+      "ms": 259.7718339999992,
+      "passed": true,
+      "result": {
+        "operation": "CLICK",
+        "target": "e17",
+        "model": "kev-latest",
+        "provider": "local",
+        "latency_ms": 260,
+        "usage": {
+          "input_tokens": 2547,
+          "output_tokens": 653
+        }
+      }
+    },
+    {
+      "case": "wiki-section",
+      "repeat": 3,
+      "model": "semif",
+      "ms": 4001.207957999999,
+      "passed": true,
+      "result": {
+        "operation": "CLICK",
+        "target": "e17",
+        "model": "semif/Qwen/Qwen3.5-4B@851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a",
+        "provider": "local",
+        "latency_ms": 4001,
+        "usage": {
+          "input_tokens": 8302,
+          "decision_heads": 4
+        },
+        "readout": "native logits; >16 options: group probability × conditional option probability"
+      }
+    },
+    {
+      "case": "wiki-section",
+      "repeat": 3,
+      "model": "cloud",
+      "ms": 999.3508750000037,
+      "passed": true,
+      "result": {
+        "operation": "CLICK",
+        "target": "e17",
+        "model": "jev-1.13.0",
+        "provider": "typesafe",
+        "latency_ms": 999,
+        "usage": {
+          "input_tokens": 4309,
+          "output_tokens": 427
+        }
+      }
+    },
+    {
+      "case": "wiki-section",
+      "repeat": 3,
+      "model": "laya",
+      "ms": 665.1774170000062,
+      "passed": false,
+      "error": {
+        "code": "MODEL_HTTP_ERROR",
+        "provider": "local",
+        "message": "local 模型接口 HTTP 422"
+      }
+    }
+  ],
+  "runs": [
+    {
+      "case": "gutenberg-ranking",
+      "repeat": 1,
+      "model": "cloud",
+      "ms": 1218.5673749999987,
+      "includingOpenMs": 2241.7826669999995,
+      "passed": true,
+      "result": {
+        "status": "verified",
+        "actions": 1,
+        "metrics": {
+          "decision_calls": 1,
+          "text_calls": 0,
+          "models": [
+            "jev-1.13.0"
+          ],
+          "typesafe_input": 4670,
+          "typesafe_output": 427,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://www.gutenberg.org/browse/scores/top",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [
+            "jev-1.13.0"
+          ],
+          "buildFingerprint": "44b25c152e44c922cea2b192bd3a0ca25ee6b9ac56f8ebae13de2289681f21cc",
+          "host": "flow-cloud"
+        }
+      }
+    },
+    {
+      "case": "gutenberg-ranking",
+      "repeat": 1,
+      "model": "laya",
+      "ms": 884.7594580000004,
+      "includingOpenMs": 1910.8884590000016,
+      "passed": false,
+      "result": {
+        "status": "handoff",
+        "reason": "runtime_error",
+        "actions": 0,
+        "metrics": {
+          "decision_calls": 0,
+          "text_calls": 0,
+          "models": [],
+          "typesafe_input": 0,
+          "typesafe_output": 0,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://www.gutenberg.org/",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [],
+          "buildFingerprint": "44b25c152e44c922cea2b192bd3a0ca25ee6b9ac56f8ebae13de2289681f21cc",
+          "host": "flow-laya"
+        }
+      }
+    },
+    {
+      "case": "gutenberg-ranking",
+      "repeat": 1,
+      "model": "kev",
+      "ms": 533.0579580000049,
+      "includingOpenMs": 1585.746874999997,
+      "passed": false,
+      "result": {
+        "status": "handoff",
+        "reason": "done_not_verified",
+        "actions": 0,
+        "metrics": {
+          "decision_calls": 1,
+          "text_calls": 0,
+          "models": [
+            "kev-latest"
+          ],
+          "typesafe_input": 2813,
+          "typesafe_output": 651,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://www.gutenberg.org/",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [
+            "kev-latest"
+          ],
+          "buildFingerprint": "44b25c152e44c922cea2b192bd3a0ca25ee6b9ac56f8ebae13de2289681f21cc",
+          "host": "flow-kev"
+        }
+      }
+    },
+    {
+      "case": "gutenberg-ranking",
+      "repeat": 1,
+      "model": "semif",
+      "ms": 4692.971915999995,
+      "includingOpenMs": 5724.270833999995,
+      "passed": true,
+      "result": {
+        "status": "verified",
+        "actions": 1,
+        "metrics": {
+          "decision_calls": 1,
+          "text_calls": 0,
+          "models": [
+            "semif/Qwen/Qwen3.5-4B@851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a"
+          ],
+          "typesafe_input": 9280,
+          "typesafe_output": 0,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://www.gutenberg.org/browse/scores/top",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [
+            "semif/Qwen/Qwen3.5-4B@851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a"
+          ],
+          "buildFingerprint": "44b25c152e44c922cea2b192bd3a0ca25ee6b9ac56f8ebae13de2289681f21cc",
+          "host": "flow-semif"
+        }
+      }
+    },
+    {
+      "case": "books-travel",
+      "repeat": 1,
+      "model": "cloud",
+      "ms": 1245.5577500000072,
+      "includingOpenMs": 3061.1722089999967,
+      "passed": true,
+      "result": {
+        "status": "verified",
+        "actions": 1,
+        "metrics": {
+          "decision_calls": 1,
+          "text_calls": 0,
+          "models": [
+            "jev-1.13.0"
+          ],
+          "typesafe_input": 4236,
+          "typesafe_output": 378,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://books.toscrape.com/catalogue/category/books/travel_2/index.html",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [
+            "jev-1.13.0"
+          ],
+          "buildFingerprint": "44b25c152e44c922cea2b192bd3a0ca25ee6b9ac56f8ebae13de2289681f21cc",
+          "host": "flow-cloud"
+        }
+      }
+    },
+    {
+      "case": "books-travel",
+      "repeat": 1,
+      "model": "laya",
+      "ms": 592.260792000001,
+      "includingOpenMs": 2435.9062919999997,
+      "passed": false,
+      "result": {
+        "status": "handoff",
+        "reason": "runtime_error",
+        "actions": 0,
+        "metrics": {
+          "decision_calls": 0,
+          "text_calls": 0,
+          "models": [],
+          "typesafe_input": 0,
+          "typesafe_output": 0,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://books.toscrape.com/",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [],
+          "buildFingerprint": "44b25c152e44c922cea2b192bd3a0ca25ee6b9ac56f8ebae13de2289681f21cc",
+          "host": "flow-laya"
+        }
+      }
+    },
+    {
+      "case": "books-travel",
+      "repeat": 1,
+      "model": "kev",
+      "ms": 422.65204100000847,
+      "includingOpenMs": 2275.4298750000016,
+      "passed": false,
+      "result": {
+        "status": "handoff",
+        "reason": "done_not_verified",
+        "actions": 0,
+        "metrics": {
+          "decision_calls": 1,
+          "text_calls": 0,
+          "models": [
+            "kev-latest"
+          ],
+          "typesafe_input": 2453,
+          "typesafe_output": 573,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://books.toscrape.com/",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [
+            "kev-latest"
+          ],
+          "buildFingerprint": "44b25c152e44c922cea2b192bd3a0ca25ee6b9ac56f8ebae13de2289681f21cc",
+          "host": "flow-kev"
+        }
+      }
+    },
+    {
+      "case": "books-travel",
+      "repeat": 1,
+      "model": "semif",
+      "ms": 4881.726207999993,
+      "includingOpenMs": 6702.604958000011,
+      "passed": true,
+      "result": {
+        "status": "verified",
+        "actions": 1,
+        "metrics": {
+          "decision_calls": 1,
+          "text_calls": 0,
+          "models": [
+            "semif/Qwen/Qwen3.5-4B@851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a"
+          ],
+          "typesafe_input": 8591,
+          "typesafe_output": 0,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://books.toscrape.com/catalogue/category/books/travel_2/index.html",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [
+            "semif/Qwen/Qwen3.5-4B@851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a"
+          ],
+          "buildFingerprint": "44b25c152e44c922cea2b192bd3a0ca25ee6b9ac56f8ebae13de2289681f21cc",
+          "host": "flow-semif"
+        }
+      }
+    },
+    {
+      "case": "wiki-section",
+      "repeat": 1,
+      "model": "cloud",
+      "ms": 1088.901457999993,
+      "includingOpenMs": 2538.7931249999965,
+      "passed": true,
+      "result": {
+        "status": "verified",
+        "actions": 1,
+        "metrics": {
+          "decision_calls": 1,
+          "text_calls": 0,
+          "models": [
+            "jev-1.13.0"
+          ],
+          "typesafe_input": 4347,
+          "typesafe_output": 427,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://en.wikipedia.org/wiki/Alan_Turing#Death",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [
+            "jev-1.13.0"
+          ],
+          "buildFingerprint": "44b25c152e44c922cea2b192bd3a0ca25ee6b9ac56f8ebae13de2289681f21cc",
+          "host": "flow-cloud"
+        }
+      }
+    },
+    {
+      "case": "wiki-section",
+      "repeat": 1,
+      "model": "laya",
+      "ms": 818.2829589999892,
+      "includingOpenMs": 2294.408666000003,
+      "passed": false,
+      "result": {
+        "status": "handoff",
+        "reason": "runtime_error",
+        "actions": 0,
+        "metrics": {
+          "decision_calls": 0,
+          "text_calls": 0,
+          "models": [],
+          "typesafe_input": 0,
+          "typesafe_output": 0,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://en.wikipedia.org/wiki/Alan_Turing",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [],
+          "buildFingerprint": "44b25c152e44c922cea2b192bd3a0ca25ee6b9ac56f8ebae13de2289681f21cc",
+          "host": "flow-laya"
+        }
+      }
+    },
+    {
+      "case": "wiki-section",
+      "repeat": 1,
+      "model": "kev",
+      "ms": 456.89812499999243,
+      "includingOpenMs": 1973.6860830000078,
+      "passed": false,
+      "result": {
+        "status": "handoff",
+        "reason": "done_not_verified",
+        "actions": 0,
+        "metrics": {
+          "decision_calls": 1,
+          "text_calls": 0,
+          "models": [
+            "kev-latest"
+          ],
+          "typesafe_input": 2570,
+          "typesafe_output": 651,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://en.wikipedia.org/wiki/Alan_Turing",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [
+            "kev-latest"
+          ],
+          "buildFingerprint": "44b25c152e44c922cea2b192bd3a0ca25ee6b9ac56f8ebae13de2289681f21cc",
+          "host": "flow-kev"
+        }
+      }
+    },
+    {
+      "case": "wiki-section",
+      "repeat": 1,
+      "model": "semif",
+      "ms": 4125.009584000014,
+      "includingOpenMs": 5592.480708000003,
+      "passed": true,
+      "result": {
+        "status": "verified",
+        "actions": 1,
+        "metrics": {
+          "decision_calls": 1,
+          "text_calls": 0,
+          "models": [
+            "semif/Qwen/Qwen3.5-4B@851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a"
+          ],
+          "typesafe_input": 8398,
+          "typesafe_output": 0,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://en.wikipedia.org/wiki/Alan_Turing#Death",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [
+            "semif/Qwen/Qwen3.5-4B@851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a"
+          ],
+          "buildFingerprint": "44b25c152e44c922cea2b192bd3a0ca25ee6b9ac56f8ebae13de2289681f21cc",
+          "host": "flow-semif"
+        }
+      }
+    },
+    {
+      "case": "gutenberg-ranking",
+      "repeat": 2,
+      "model": "laya",
+      "ms": 941.5820420000091,
+      "includingOpenMs": 1051.5747089999932,
+      "passed": false,
+      "result": {
+        "status": "handoff",
+        "reason": "runtime_error",
+        "actions": 0,
+        "metrics": {
+          "decision_calls": 0,
+          "text_calls": 0,
+          "models": [],
+          "typesafe_input": 0,
+          "typesafe_output": 0,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://www.gutenberg.org/",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [],
+          "buildFingerprint": "44b25c152e44c922cea2b192bd3a0ca25ee6b9ac56f8ebae13de2289681f21cc",
+          "host": "flow-laya"
+        }
+      }
+    },
+    {
+      "case": "gutenberg-ranking",
+      "repeat": 2,
+      "model": "kev",
+      "ms": 483.20095800000126,
+      "includingOpenMs": 600.9384169999976,
+      "passed": false,
+      "result": {
+        "status": "handoff",
+        "reason": "done_not_verified",
+        "actions": 0,
+        "metrics": {
+          "decision_calls": 1,
+          "text_calls": 0,
+          "models": [
+            "kev-latest"
+          ],
+          "typesafe_input": 2687,
+          "typesafe_output": 652,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://www.gutenberg.org/",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [
+            "kev-latest"
+          ],
+          "buildFingerprint": "44b25c152e44c922cea2b192bd3a0ca25ee6b9ac56f8ebae13de2289681f21cc",
+          "host": "flow-kev"
+        }
+      }
+    },
+    {
+      "case": "gutenberg-ranking",
+      "repeat": 2,
+      "model": "semif",
+      "ms": 4516.392292000004,
+      "includingOpenMs": 4626.652875,
+      "passed": true,
+      "result": {
+        "status": "verified",
+        "actions": 1,
+        "metrics": {
+          "decision_calls": 1,
+          "text_calls": 0,
+          "models": [
+            "semif/Qwen/Qwen3.5-4B@851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a"
+          ],
+          "typesafe_input": 9370,
+          "typesafe_output": 0,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://www.gutenberg.org/browse/scores/top",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [
+            "semif/Qwen/Qwen3.5-4B@851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a"
+          ],
+          "buildFingerprint": "44b25c152e44c922cea2b192bd3a0ca25ee6b9ac56f8ebae13de2289681f21cc",
+          "host": "flow-semif"
+        }
+      }
+    },
+    {
+      "case": "gutenberg-ranking",
+      "repeat": 2,
+      "model": "cloud",
+      "ms": 911.9745829999883,
+      "includingOpenMs": 1037.994292000003,
+      "passed": true,
+      "result": {
+        "status": "verified",
+        "actions": 1,
+        "metrics": {
+          "decision_calls": 1,
+          "text_calls": 0,
+          "models": [
+            "jev-1.13.0"
+          ],
+          "typesafe_input": 4711,
+          "typesafe_output": 426,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://www.gutenberg.org/browse/scores/top",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [
+            "jev-1.13.0"
+          ],
+          "buildFingerprint": "44b25c152e44c922cea2b192bd3a0ca25ee6b9ac56f8ebae13de2289681f21cc",
+          "host": "flow-cloud"
+        }
+      }
+    },
+    {
+      "case": "books-travel",
+      "repeat": 2,
+      "model": "laya",
+      "ms": 571.9854170000035,
+      "includingOpenMs": 726.9042079999927,
+      "passed": false,
+      "result": {
+        "status": "handoff",
+        "reason": "runtime_error",
+        "actions": 0,
+        "metrics": {
+          "decision_calls": 0,
+          "text_calls": 0,
+          "models": [],
+          "typesafe_input": 0,
+          "typesafe_output": 0,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://books.toscrape.com/",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [],
+          "buildFingerprint": "44b25c152e44c922cea2b192bd3a0ca25ee6b9ac56f8ebae13de2289681f21cc",
+          "host": "flow-laya"
+        }
+      }
+    },
+    {
+      "case": "books-travel",
+      "repeat": 2,
+      "model": "kev",
+      "ms": 369.0486669999955,
+      "includingOpenMs": 513.1472919999942,
+      "passed": false,
+      "result": {
+        "status": "handoff",
+        "reason": "done_not_verified",
+        "actions": 0,
+        "metrics": {
+          "decision_calls": 1,
+          "text_calls": 0,
+          "models": [
+            "kev-latest"
+          ],
+          "typesafe_input": 2453,
+          "typesafe_output": 574,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://books.toscrape.com/",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [
+            "kev-latest"
+          ],
+          "buildFingerprint": "44b25c152e44c922cea2b192bd3a0ca25ee6b9ac56f8ebae13de2289681f21cc",
+          "host": "flow-kev"
+        }
+      }
+    },
+    {
+      "case": "books-travel",
+      "repeat": 2,
+      "model": "semif",
+      "ms": 5515.822375000003,
+      "includingOpenMs": 5668.140583,
+      "passed": true,
+      "result": {
+        "status": "verified",
+        "actions": 1,
+        "metrics": {
+          "decision_calls": 1,
+          "text_calls": 0,
+          "models": [
+            "semif/Qwen/Qwen3.5-4B@851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a"
+          ],
+          "typesafe_input": 8591,
+          "typesafe_output": 0,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://books.toscrape.com/catalogue/category/books/travel_2/index.html",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [
+            "semif/Qwen/Qwen3.5-4B@851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a"
+          ],
+          "buildFingerprint": "44b25c152e44c922cea2b192bd3a0ca25ee6b9ac56f8ebae13de2289681f21cc",
+          "host": "flow-semif"
+        }
+      }
+    },
+    {
+      "case": "books-travel",
+      "repeat": 2,
+      "model": "cloud",
+      "ms": 2569.222624999995,
+      "includingOpenMs": 2733.196667000011,
+      "passed": true,
+      "result": {
+        "status": "verified",
+        "actions": 1,
+        "metrics": {
+          "decision_calls": 1,
+          "text_calls": 0,
+          "models": [
+            "jev-1.13.0"
+          ],
+          "typesafe_input": 4236,
+          "typesafe_output": 378,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://books.toscrape.com/catalogue/category/books/travel_2/index.html",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [
+            "jev-1.13.0"
+          ],
+          "buildFingerprint": "44b25c152e44c922cea2b192bd3a0ca25ee6b9ac56f8ebae13de2289681f21cc",
+          "host": "flow-cloud"
+        }
+      }
+    },
+    {
+      "case": "wiki-section",
+      "repeat": 2,
+      "model": "laya",
+      "ms": 886.7870410000032,
+      "includingOpenMs": 2487.4822080000013,
+      "passed": false,
+      "result": {
+        "status": "handoff",
+        "reason": "runtime_error",
+        "actions": 0,
+        "metrics": {
+          "decision_calls": 0,
+          "text_calls": 0,
+          "models": [],
+          "typesafe_input": 0,
+          "typesafe_output": 0,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://en.wikipedia.org/wiki/Alan_Turing",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [],
+          "buildFingerprint": "b21b14cd783f82586a4a4282b5bf3e42ab431c3b9699e504a7d7926cfdd204d1",
+          "host": "flow-laya"
+        }
+      }
+    },
+    {
+      "case": "wiki-section",
+      "repeat": 2,
+      "model": "kev",
+      "ms": 503.7397079999937,
+      "includingOpenMs": 1880.3744579999911,
+      "passed": false,
+      "result": {
+        "status": "handoff",
+        "reason": "done_not_verified",
+        "actions": 0,
+        "metrics": {
+          "decision_calls": 1,
+          "text_calls": 0,
+          "models": [
+            "kev-latest"
+          ],
+          "typesafe_input": 2553,
+          "typesafe_output": 650,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://en.wikipedia.org/wiki/Alan_Turing",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [
+            "kev-latest"
+          ],
+          "buildFingerprint": "b21b14cd783f82586a4a4282b5bf3e42ab431c3b9699e504a7d7926cfdd204d1",
+          "host": "flow-kev"
+        }
+      }
+    },
+    {
+      "case": "wiki-section",
+      "repeat": 2,
+      "model": "semif",
+      "ms": 4176.402707999994,
+      "includingOpenMs": 5558.383541000003,
+      "passed": true,
+      "result": {
+        "status": "verified",
+        "actions": 1,
+        "metrics": {
+          "decision_calls": 1,
+          "text_calls": 0,
+          "models": [
+            "semif/Qwen/Qwen3.5-4B@851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a"
+          ],
+          "typesafe_input": 8394,
+          "typesafe_output": 0,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://en.wikipedia.org/wiki/Alan_Turing#Death",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [
+            "semif/Qwen/Qwen3.5-4B@851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a"
+          ],
+          "buildFingerprint": "b21b14cd783f82586a4a4282b5bf3e42ab431c3b9699e504a7d7926cfdd204d1",
+          "host": "flow-semif"
+        }
+      }
+    },
+    {
+      "case": "wiki-section",
+      "repeat": 2,
+      "model": "cloud",
+      "ms": 921.8329999999987,
+      "includingOpenMs": 2296.310625000013,
+      "passed": true,
+      "result": {
+        "status": "verified",
+        "actions": 1,
+        "metrics": {
+          "decision_calls": 1,
+          "text_calls": 0,
+          "models": [
+            "jev-1.13.0"
+          ],
+          "typesafe_input": 4347,
+          "typesafe_output": 427,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://en.wikipedia.org/wiki/Alan_Turing#Death",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [
+            "jev-1.13.0"
+          ],
+          "buildFingerprint": "b21b14cd783f82586a4a4282b5bf3e42ab431c3b9699e504a7d7926cfdd204d1",
+          "host": "flow-cloud"
+        }
+      }
+    },
+    {
+      "case": "gutenberg-ranking",
+      "repeat": 3,
+      "model": "kev",
+      "ms": 538.8629999999976,
+      "includingOpenMs": 648.220708000008,
+      "passed": false,
+      "result": {
+        "status": "handoff",
+        "reason": "done_not_verified",
+        "actions": 0,
+        "metrics": {
+          "decision_calls": 1,
+          "text_calls": 0,
+          "models": [
+            "kev-latest"
+          ],
+          "typesafe_input": 2672,
+          "typesafe_output": 652,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://www.gutenberg.org/",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [
+            "kev-latest"
+          ],
+          "buildFingerprint": "b21b14cd783f82586a4a4282b5bf3e42ab431c3b9699e504a7d7926cfdd204d1",
+          "host": "flow-kev"
+        }
+      }
+    },
+    {
+      "case": "gutenberg-ranking",
+      "repeat": 3,
+      "model": "semif",
+      "ms": 4567.279041999995,
+      "includingOpenMs": 4681.16399999999,
+      "passed": true,
+      "result": {
+        "status": "verified",
+        "actions": 1,
+        "metrics": {
+          "decision_calls": 1,
+          "text_calls": 0,
+          "models": [
+            "semif/Qwen/Qwen3.5-4B@851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a"
+          ],
+          "typesafe_input": 9370,
+          "typesafe_output": 0,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://www.gutenberg.org/browse/scores/top",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [
+            "semif/Qwen/Qwen3.5-4B@851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a"
+          ],
+          "buildFingerprint": "b21b14cd783f82586a4a4282b5bf3e42ab431c3b9699e504a7d7926cfdd204d1",
+          "host": "flow-semif"
+        }
+      }
+    },
+    {
+      "case": "gutenberg-ranking",
+      "repeat": 3,
+      "model": "cloud",
+      "ms": 926.9624579999945,
+      "includingOpenMs": 1037.610416999989,
+      "passed": true,
+      "result": {
+        "status": "verified",
+        "actions": 1,
+        "metrics": {
+          "decision_calls": 1,
+          "text_calls": 0,
+          "models": [
+            "jev-1.13.0"
+          ],
+          "typesafe_input": 4711,
+          "typesafe_output": 426,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://www.gutenberg.org/browse/scores/top",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [
+            "jev-1.13.0"
+          ],
+          "buildFingerprint": "b21b14cd783f82586a4a4282b5bf3e42ab431c3b9699e504a7d7926cfdd204d1",
+          "host": "flow-cloud"
+        }
+      }
+    },
+    {
+      "case": "gutenberg-ranking",
+      "repeat": 3,
+      "model": "laya",
+      "ms": 923.7804999999935,
+      "includingOpenMs": 1043.4750829999975,
+      "passed": false,
+      "result": {
+        "status": "handoff",
+        "reason": "runtime_error",
+        "actions": 0,
+        "metrics": {
+          "decision_calls": 0,
+          "text_calls": 0,
+          "models": [],
+          "typesafe_input": 0,
+          "typesafe_output": 0,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://www.gutenberg.org/",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [],
+          "buildFingerprint": "b21b14cd783f82586a4a4282b5bf3e42ab431c3b9699e504a7d7926cfdd204d1",
+          "host": "flow-laya"
+        }
+      }
+    },
+    {
+      "case": "books-travel",
+      "repeat": 3,
+      "model": "kev",
+      "ms": 369.98770800000057,
+      "includingOpenMs": 511.6928750000079,
+      "passed": false,
+      "result": {
+        "status": "handoff",
+        "reason": "done_not_verified",
+        "actions": 0,
+        "metrics": {
+          "decision_calls": 1,
+          "text_calls": 0,
+          "models": [
+            "kev-latest"
+          ],
+          "typesafe_input": 2453,
+          "typesafe_output": 573,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://books.toscrape.com/",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [
+            "kev-latest"
+          ],
+          "buildFingerprint": "b21b14cd783f82586a4a4282b5bf3e42ab431c3b9699e504a7d7926cfdd204d1",
+          "host": "flow-kev"
+        }
+      }
+    },
+    {
+      "case": "books-travel",
+      "repeat": 3,
+      "model": "semif",
+      "ms": 5558.162958000001,
+      "includingOpenMs": 5690.499125000002,
+      "passed": true,
+      "result": {
+        "status": "verified",
+        "actions": 1,
+        "metrics": {
+          "decision_calls": 1,
+          "text_calls": 0,
+          "models": [
+            "semif/Qwen/Qwen3.5-4B@851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a"
+          ],
+          "typesafe_input": 8531,
+          "typesafe_output": 0,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://books.toscrape.com/catalogue/category/books/travel_2/index.html",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [
+            "semif/Qwen/Qwen3.5-4B@851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a"
+          ],
+          "buildFingerprint": "b21b14cd783f82586a4a4282b5bf3e42ab431c3b9699e504a7d7926cfdd204d1",
+          "host": "flow-semif"
+        }
+      }
+    },
+    {
+      "case": "books-travel",
+      "repeat": 3,
+      "model": "cloud",
+      "ms": 943.9580000000133,
+      "includingOpenMs": 1092.8912919999857,
+      "passed": true,
+      "result": {
+        "status": "verified",
+        "actions": 1,
+        "metrics": {
+          "decision_calls": 1,
+          "text_calls": 0,
+          "models": [
+            "jev-1.13.0"
+          ],
+          "typesafe_input": 4236,
+          "typesafe_output": 378,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://books.toscrape.com/catalogue/category/books/travel_2/index.html",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [
+            "jev-1.13.0"
+          ],
+          "buildFingerprint": "b21b14cd783f82586a4a4282b5bf3e42ab431c3b9699e504a7d7926cfdd204d1",
+          "host": "flow-cloud"
+        }
+      }
+    },
+    {
+      "case": "books-travel",
+      "repeat": 3,
+      "model": "laya",
+      "ms": 569.828125,
+      "includingOpenMs": 702.299874999997,
+      "passed": false,
+      "result": {
+        "status": "handoff",
+        "reason": "runtime_error",
+        "actions": 0,
+        "metrics": {
+          "decision_calls": 0,
+          "text_calls": 0,
+          "models": [],
+          "typesafe_input": 0,
+          "typesafe_output": 0,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://books.toscrape.com/",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [],
+          "buildFingerprint": "b21b14cd783f82586a4a4282b5bf3e42ab431c3b9699e504a7d7926cfdd204d1",
+          "host": "flow-laya"
+        }
+      }
+    },
+    {
+      "case": "wiki-section",
+      "repeat": 3,
+      "model": "kev",
+      "ms": 519.2270000000135,
+      "includingOpenMs": 1385.3657919999969,
+      "passed": false,
+      "result": {
+        "status": "handoff",
+        "reason": "done_not_verified",
+        "actions": 0,
+        "metrics": {
+          "decision_calls": 1,
+          "text_calls": 0,
+          "models": [
+            "kev-latest"
+          ],
+          "typesafe_input": 2570,
+          "typesafe_output": 654,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://en.wikipedia.org/wiki/Alan_Turing",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [
+            "kev-latest"
+          ],
+          "buildFingerprint": "b21b14cd783f82586a4a4282b5bf3e42ab431c3b9699e504a7d7926cfdd204d1",
+          "host": "flow-kev"
+        }
+      }
+    },
+    {
+      "case": "wiki-section",
+      "repeat": 3,
+      "model": "semif",
+      "ms": 4231.273207999999,
+      "includingOpenMs": 5105.506999999983,
+      "passed": true,
+      "result": {
+        "status": "verified",
+        "actions": 1,
+        "metrics": {
+          "decision_calls": 1,
+          "text_calls": 0,
+          "models": [
+            "semif/Qwen/Qwen3.5-4B@851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a"
+          ],
+          "typesafe_input": 8398,
+          "typesafe_output": 0,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://en.wikipedia.org/wiki/Alan_Turing#Death",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [
+            "semif/Qwen/Qwen3.5-4B@851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a"
+          ],
+          "buildFingerprint": "b21b14cd783f82586a4a4282b5bf3e42ab431c3b9699e504a7d7926cfdd204d1",
+          "host": "flow-semif"
+        }
+      }
+    },
+    {
+      "case": "wiki-section",
+      "repeat": 3,
+      "model": "cloud",
+      "ms": 1033.612832999992,
+      "includingOpenMs": 1937.9780420000025,
+      "passed": true,
+      "result": {
+        "status": "verified",
+        "actions": 1,
+        "metrics": {
+          "decision_calls": 1,
+          "text_calls": 0,
+          "models": [
+            "jev-1.13.0"
+          ],
+          "typesafe_input": 4347,
+          "typesafe_output": 427,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://en.wikipedia.org/wiki/Alan_Turing#Death",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [
+            "jev-1.13.0"
+          ],
+          "buildFingerprint": "b21b14cd783f82586a4a4282b5bf3e42ab431c3b9699e504a7d7926cfdd204d1",
+          "host": "flow-cloud"
+        }
+      }
+    },
+    {
+      "case": "wiki-section",
+      "repeat": 3,
+      "model": "laya",
+      "ms": 879.103833000001,
+      "includingOpenMs": 1759.5510420000064,
+      "passed": false,
+      "result": {
+        "status": "handoff",
+        "reason": "runtime_error",
+        "actions": 0,
+        "metrics": {
+          "decision_calls": 0,
+          "text_calls": 0,
+          "models": [],
+          "typesafe_input": 0,
+          "typesafe_output": 0,
+          "text_input": 0,
+          "text_output": 0,
+          "main_model_tokens": null,
+          "total_cost": null
+        },
+        "url": "https://en.wikipedia.org/wiki/Alan_Turing",
+        "versions": {
+          "engine": "1.1.0-rc.1",
+          "models": [],
+          "buildFingerprint": "b21b14cd783f82586a4a4282b5bf3e42ab431c3b9699e504a7d7926cfdd204d1",
+          "host": "flow-laya"
+        }
+      }
+    }
+  ]
+}

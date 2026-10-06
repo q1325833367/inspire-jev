@@ -17,8 +17,19 @@ export async function configure({envFile,modelProxy,browserProxy,entry,nonIntera
   if(envFile){await readCredentials(resolve(envFile));const config=await saveSettings({...current,envFile:resolve(envFile),modelProxy:modelProxy??current.modelProxy,browserProxy:browserProxy??current.browserProxy,trace:false});return{config,entry};}
   if(nonInteractive)throw Error('自动配置需要 --env-file，或通过环境变量配置后直接运行 mcp');
   const values=await readCredentials(current.envFile,{requireKey:false});
-  values.TYPESAFE_API_KEY=await prompt('TypeSafe API key',{secret:true,defaultValue:values.TYPESAFE_API_KEY||''});if(!values.TYPESAFE_API_KEY)throw Error('TypeSafe API key 不能为空');
-  values.TYPESAFE_BASE_URL=await prompt('TypeSafe API 地址',{defaultValue:values.TYPESAFE_BASE_URL});values.TYPESAFE_MODEL=await prompt('Jev 模型',{defaultValue:values.TYPESAFE_MODEL});
+  values.JEV_PROVIDER=await prompt('决策服务 typesafe（云端）/local（本地）',{defaultValue:values.JEV_PROVIDER});
+  if(values.JEV_PROVIDER==='local'){
+    const previous=values.LOCAL_JEV_ENGINE;
+    values.LOCAL_JEV_ENGINE=await prompt('本地引擎 laya/kev/semif/custom',{defaultValue:previous});
+    const preset={laya:{model:'multilingual',port:8769},kev:{model:'kev-latest',port:8770},semif:{model:'semif-local',port:8772}}[values.LOCAL_JEV_ENGINE];
+    if(values.LOCAL_JEV_ENGINE!==previous&&preset){values.LOCAL_JEV_MODEL=preset.model;values.LOCAL_JEV_BASE_URL=`http://127.0.0.1:${preset.port}/v1/systemone`;}
+    values.LOCAL_JEV_BASE_URL=await prompt('本地 Jev 兼容接口地址（含 /v1/systemone）',{defaultValue:values.LOCAL_JEV_BASE_URL});
+    values.LOCAL_JEV_MODEL=await prompt('本地模型标识',{defaultValue:values.LOCAL_JEV_MODEL});
+    values.LOCAL_JEV_API_KEY=await prompt('本地服务 API key，未启用鉴权可留空',{secret:true,defaultValue:values.LOCAL_JEV_API_KEY||''});
+  }else if(values.JEV_PROVIDER==='typesafe'){
+    values.TYPESAFE_API_KEY=await prompt('TypeSafe API key',{secret:true,defaultValue:values.TYPESAFE_API_KEY||''});if(!values.TYPESAFE_API_KEY)throw Error('TypeSafe API key 不能为空');
+    values.TYPESAFE_BASE_URL=await prompt('TypeSafe API 地址',{defaultValue:values.TYPESAFE_BASE_URL});values.TYPESAFE_MODEL=await prompt('Jev 模型',{defaultValue:values.TYPESAFE_MODEL});
+  }else throw Error('决策服务必须为 typesafe 或 local');
   const text=await prompt('配置文本生成模型？y/n',{defaultValue:values.TEXT_MODEL_API_KEY?'y':'n'});
   if(/^(y|yes|是)$/i.test(text)){values.TEXT_MODEL_API_KEY=await prompt('文本模型 API key',{secret:true,defaultValue:values.TEXT_MODEL_API_KEY||''});values.TEXT_MODEL_BASE_URL=await prompt('文本模型 API 地址',{defaultValue:values.TEXT_MODEL_BASE_URL});values.TEXT_MODEL=await prompt('文本模型名称',{defaultValue:values.TEXT_MODEL});}
   await readCredentials(undefined,{environment:values});const credentials=await writeCredentials(current.home,values);

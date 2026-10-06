@@ -4,7 +4,13 @@
 
 |配置|默认值 / 用途|
 |---|---|
-|TYPESAFE_API_KEY|必填；Jev 决策服务|
+|JEV_PROVIDER|typesafe（默认云端）或 local（本地服务）|
+|LOCAL_JEV_ENGINE|laya、kev、semif 或 custom；本地接口适配类型|
+|LOCAL_JEV_BASE_URL|http://127.0.0.1:8769/v1/systemone；完整接口地址|
+|LOCAL_JEV_MODEL|multilingual；须与服务实际加载模型一致|
+|LOCAL_JEV_API_KEY|可选；只发给本地服务，不使用云端 key 代替|
+|LOCAL_JEV_TIMEOUT_MS|25000；可设置 100–120000 毫秒|
+|TYPESAFE_API_KEY|仅云端模式必填；Jev 决策服务|
 |TYPESAFE_BASE_URL|https://api.typesafe.ai/v1/systemone|
 |TYPESAFE_MODEL|jev-latest|
 |TEXT_MODEL_API_KEY|可选；文字生成服务|
@@ -39,5 +45,7 @@ inspire-jev doctor --models
 ## 网络
 
 模型和浏览器代理分别配置，无需 TUN。HTTP(S) 地址不能内嵌用户名、密码或密钥。`doctor` 检查网络；`doctor --models` 额外发起实际模型调用。代理地址使用你自己的代理监听端口；虚拟机要使用客户机可达的宿主地址。
+
+本地决策请求绕过 `modelProxy`；下载本地模型仍可能需要下载工具自己的代理。浏览器和 DeepSeek 保持原有代理设置。切换后新的任务调用生效，已经进行中的片段不更换模型。环境变量优先级仍最高；旧配置不设置 `JEV_PROVIDER` 时继续使用云端。
 
 正常使用关闭颗粒追踪。测试追踪包含时间戳、步骤耗时和错误分类，不记录密钥、输入值或完整页面。未完成任务、效果未知动作和待查日志受保护；已排查日志按七天、二十份和容量规则清理，已完成大检查点七天后清理。

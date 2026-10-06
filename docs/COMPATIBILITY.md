@@ -1,5 +1,20 @@
 # 兼容矩阵
 
+## 1.1 RC 本地决策后端
+
+以下是本地推理的实际验证状态，不沿用浏览器或核心 CI 的平台成绩。云端仍是默认；详情与失败记录见[本地对照报告](validation/local-model-comparison-20261006.md)。
+
+|后端|macOS ARM64 实测|macOS x64 / Windows / Linux|
+|---|---|---|
+|OpenJev／SemIf + 本项目桥接|MLX、Qwen3.5-4B；三项单阶段网页任务各重复三次，9/9 通过；固定观测回放 6/9|模型推理与真实业务待验证；当前桥接使用 Apple MLX|
+|Kev-0.5B|官方 torch / MPS / fp32；固定观测回放 3/9，完整流程 0/9，保持实验状态|待验证|
+|Laya multilingual|官方 torch / MPS；本轮批量接口 HTTP 422，完整流程未通过|待验证|
+|自定义 System One 兼容端点|HTTP 契约及密钥隔离回归通过；具体模型待验证|具体模型待验证|
+
+模型服务需自行安装并启动。云端与本地不会静默互相回退；上述单阶段开发对照不等于三个主 Agent 入口的正式验收。
+
+## 1.0 与历史宿主证据
+
 1.0 的九项公开网站原生验收与三系统安装结果以[同版报告](https://github.com/q1325833367/inspire-jev/releases/download/v1.0.0/acceptance-report.json)为准。以下历史证据保留原版本与分类；登录表单及速度对照不在首发验收范围。
 
 |系统 / 架构|核心回归|真实浏览器|GPT 插件|Pi|stdio MCP|

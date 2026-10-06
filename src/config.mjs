@@ -5,7 +5,7 @@ import {homedir} from 'node:os';
 import {join,dirname} from 'node:path';
 import {userDataHome,secureDirectory} from './platform.mjs';
 
-export const VERSION = '1.0.0';
+export const VERSION = '1.1.0-rc.1';
 export const defaultHome = () => {
   if(process.env.INSPIRE_JEV_HOME||process.env.JEV_AGENT_HOME)return userDataHome();
   try{const installed=JSON.parse(readFileSync(join(dirname(dirname(fileURLToPath(import.meta.url))),'installed-home.json'),'utf8'));if(typeof installed.home==='string')return installed.home;}catch{}
