@@ -29,7 +29,7 @@ export async function createObserver(agent){
      const value=description?.value||'';
      return{...base,privateForm:{name:name?.value||'',description:value,descriptionLength:Array.from(value).length,descriptionChinese:/[\u4e00-\u9fff]/.test(value),descriptionUse:/网页|浏览器|网站/.test(value),privateChecked:privateControl?.checked===true},authenticated:!!document.querySelector('meta[name="user-login"][content]:not([content=""])')};
     }
-    const license=text('.react-code-lines');return{...base,authenticated:!!document.querySelector('meta[name="user-login"][content]:not([content=""])'),readme:text('article.markdown-body').slice(0,1500),license:license.slice(0,5000),licenseTruncated:license.length>5000};
+    const code=text('.react-code-lines'),readme=/\/README\.md$/i.test(location.pathname)?code||text('article.markdown-body'):text('article.markdown-body'),license=/\/LICENSE$/i.test(location.pathname)?code:'';return{...base,authenticated:!!document.querySelector('meta[name="user-login"][content]:not([content=""])'),readme:readme.slice(0,1500),license:license.slice(0,5000),licenseTruncated:license.length>5000};
    }
    return base;
   },{caseId:context.caseId});
