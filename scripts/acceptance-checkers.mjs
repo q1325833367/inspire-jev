@@ -1,6 +1,14 @@
 import {hash} from './acceptance-evidence.mjs';
 const gt='https://www.gutenberg.org',wiki='https://en.wikipedia.org',gh='https://github.com';
 const absolute=(href,url)=>{try{return new URL(href,url).href;}catch{return null;}};
+const fullMIT=text=>typeof text==='string'&&['MIT License','Permission is hereby granted','THE SOFTWARE IS PROVIDED','OTHER DEALINGS IN THE SOFTWARE.'].every(part=>text.includes(part));
+function overviewLicense(events,snapshots,repo){
+ return events.some(e=>e.type==='tool_end'&&e.collection&&Object.values(e.collection).concat(e.collection).some(c=>{
+  if(!c?.url||!c.data)return false;const url=new URL(c.url);
+  if(url.origin!=='https://github.com'||url.pathname!=='/'+repo||url.searchParams.get('tab')!=='MIT-1-ov-file'||!snapshots.some(s=>s.url===c.url))return false;
+  return Object.entries(c.data).some(([name,text])=>{const coverage=c.coverage?.[name];return fullMIT(text)&&coverage?.matched===1&&coverage.returned===1&&coverage.truncated!==true&&coverage.items?.length===1&&coverage.items[0].truncated===false;});
+ }));
+}
 export function checkBusiness(caseId,events,{long=false,finalOutput,requirements={}}={}){
  const snapshots=events.filter(e=>e.type==='snapshot').map(e=>e.snapshot),actions=events.filter(e=>e.type==='action'&&e.phase==='acknowledged'),last=snapshots.at(-1),reasons=[];
  const require=(condition,reason)=>{if(!condition)reasons.push(reason);};
@@ -20,7 +28,7 @@ export function checkBusiness(caseId,events,{long=false,finalOutput,requirements
   const count=requirements.count||10,page=snapshots.find(s=>s.ranking?.length>=count),rows=page?.ranking.slice(0,count)||[];const parsed=rows.map(x=>({url:absolute(x.href,page.url),downloads:Number(x.text.match(/\((\d+)\)\s*$/)?.[1])}));require(rows.length===count&&new Set(parsed.map(x=>x.url)).size===count&&parsed.every(x=>Number.isFinite(x.downloads)),'现场条目与有效数量');
   const sorted=requirements.sorted===false?parsed:[...parsed].sort((a,b)=>b.downloads-a.downloads);require(Array.isArray(finalOutput?.ranking)&&JSON.stringify(finalOutput.ranking.map(x=>({url:x.url,downloads:x.downloads})))===JSON.stringify(sorted),'数量排序及输出');
  }else if(caseId==='github-public'){
-  const repo=requirements.repo||'browser-use/jev-ultrafast';require(snapshots.some(s=>(s.url===gh+'/'+repo||(s.url.startsWith(gh+'/'+repo+'/blob/')&&/\/README\.md$/i.test(new URL(s.url).pathname)))&&s.readme?.length===1500&&received(s.url)&&strings.some(t=>t.length>=1400&&t.length<=1500&&compact(t).startsWith(compact(s.readme).slice(0,1000)))),'README前1500字与采集来源');require(snapshots.some(s=>s.url.startsWith(gh+'/'+repo+'/blob/')&&s.url.endsWith('/LICENSE')&&s.license?.includes('MIT License')&&s.license.includes('OTHER DEALINGS IN THE SOFTWARE.')&&!s.licenseTruncated&&received(s.url)&&received(s.license)),'完整许可证与采集来源');
+  const repo=requirements.repo||'browser-use/jev-ultrafast';require(snapshots.some(s=>(s.url===gh+'/'+repo||(s.url.startsWith(gh+'/'+repo+'/blob/')&&/\/README\.md$/i.test(new URL(s.url).pathname)))&&s.readme?.length===1500&&received(s.url)&&strings.some(t=>t.length>=1400&&t.length<=1500&&compact(t).startsWith(compact(s.readme).slice(0,1000)))),'README前1500字与采集来源');require(snapshots.some(s=>s.url.startsWith(gh+'/'+repo+'/blob/')&&s.url.endsWith('/LICENSE')&&fullMIT(s.license)&&!s.licenseTruncated&&received(s.url)&&received(s.license))||overviewLicense(events,snapshots,repo),'完整许可证与采集来源');
  }else if(caseId==='github-private-draft'){
   const f=last?.privateForm;require(last?.url.startsWith(gh+'/new')&&last.authenticated,'已登录新建表单现场');require(f?.nameMatches,'名称实值');require(requirements.descriptionHash?f?.descriptionHash===requirements.descriptionHash:f?.descriptionLength>=(requirements.descriptionMin||20)&&f.descriptionLength<=60&&f.descriptionChinese&&f.descriptionUse,'中文描述');require(f?.privateChecked,'Private实际选中');require(!events.some(e=>e.type==='request'&&e.repositoryCreation)&&!actions.some(a=>a.isSubmit),'未提交');
  }else require(false,'未知业务用例');

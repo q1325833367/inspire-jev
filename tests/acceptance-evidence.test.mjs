@@ -59,3 +59,15 @@ test('字段核验使用最后的完整现场，允许 HTML 日期微格式但�
  const events=[{type:'snapshot',snapshot:{url,heading:'Alan Turing',fields:[]}},{type:'snapshot',snapshot:{url,heading:'Alan Turing',fields}},{type:'action',phase:'issued',kind:'fill',valueHash:hash('Alan Turing')},{type:'tool_end',collection:{url,title:'Alan Turing',fields:['Born actual (1912-06-23) birth',fields[1],fields[2]]}}];
  assert.equal(checkBusiness('wiki-fields',events).passed,true);events.at(-1).collection.fields.splice(1,1);assert.equal(checkBusiness('wiki-fields',events).passed,false);
 });
+
+test('许可证标签页必须有实际完整 DOM 采集及对应现场，模型声明、截断和错误来源不能通过',()=>{
+ const url='https://github.com/browser-use/jev-ultrafast',licenseURL=url+'?tab=MIT-1-ov-file',readme='r'.repeat(1500),license='MIT License Permission is hereby granted THE SOFTWARE IS PROVIDED OTHER DEALINGS IN THE SOFTWARE.';
+ const read={type:'tool_end',collection:{url,data:{readme}}},receipt={type:'tool_end',collection:{url:licenseURL,data:{license},coverage:{license:{matched:1,returned:1,items:[{truncated:false}]}}}},scene={type:'snapshot',snapshot:{url:licenseURL}};
+ const events=[{type:'snapshot',snapshot:{url,readme}},read,scene,receipt];
+ assert.equal(checkBusiness('github-public',events).passed,true);
+ assert.equal(checkBusiness('github-public',events.slice(0,-1),{finalOutput:{results:{license,source:licenseURL}}}).passed,false);
+ assert.equal(checkBusiness('github-public',events.filter(e=>e!==scene)).passed,false);
+ receipt.collection.coverage.license.items[0].truncated=true;assert.equal(checkBusiness('github-public',events).passed,false);
+ receipt.collection.coverage.license.items[0].truncated=false;receipt.collection.data.license=license.replace('OTHER DEALINGS IN THE SOFTWARE.','');assert.equal(checkBusiness('github-public',events).passed,false);
+ receipt.collection.data.license=license;receipt.collection.url=licenseURL.replace('browser-use/jev-ultrafast','other/repo');assert.equal(checkBusiness('github-public',events).passed,false);
+});

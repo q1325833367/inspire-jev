@@ -15,7 +15,15 @@ async function fixture(work){
   try{const session=await agent.sessions.open({url:origin,allowedOrigins:[origin],headless:true});await work({agent,session,origin,page:agent.sessions.get(session.id).page,adapter:agent.sessions.get(session.id).adapter});}
   finally{await agent.close();await new Promise(r=>server.close(r));await rm(home,{recursive:true,force:true});}
 }
-const ref=async(adapter,label)=>(await adapter.observe()).actions.find(a=>a.label===label).ref;
+const ref=async(adapter,label)=>{
+  let cursor;
+  for(let batch=0;batch<20;batch++){
+    const view=await adapter.observe({cursor}),target=view.actions.find(a=>a.label===label);
+    if(target)return target.ref;
+    cursor=view.cursor;if(!cursor)break;
+  }
+  assert.fail(`未发现操作目标: ${label}`);
+};
 test('接管填写核验实际值，记录不保存输入，运行身份可查',async()=>fixture(async({agent,session,adapter,page})=>{
   assert.match(session.buildFingerprint,/^[a-f0-9]{64}$/);assert.equal(session.host,'test');
   const result=await agent.act({sessionId:session.id,ref:await ref(adapter,'名字'),value:'明确给定文字'});
