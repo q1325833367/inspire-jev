@@ -5,7 +5,7 @@
 |改编代码|[browser-use/jev-ultrafast](https://github.com/browser-use/jev-ultrafast/tree/1231850a0bf1a0c0341fe408ef1668dbbfdfac46)|候选观察、并行操作与目标决策的起点；MIT，保留 BrowserUse 版权|
 |运行时|[Node.js](https://nodejs.org/)|Node.js 24；Node 项目许可证|
 |运行依赖|[Playwright](https://github.com/microsoft/playwright)|浏览器驱动；Apache-2.0|
-|运行依赖|[MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk)|stdio 协议；MIT|
+|运行依赖|[MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk)|stdio 协议；本版 server 包为 MIT，client 包为 Apache-2.0|
 |运行依赖|[Undici](https://github.com/nodejs/undici)|HTTP 与显式代理；MIT|
 |运行依赖|[Zod](https://github.com/colinhacks/zod)|参数验证；MIT|
 |运行依赖|[cross-spawn](https://github.com/moxystudio/node-cross-spawn)|跨平台进程启动；MIT|
