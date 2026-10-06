@@ -11,7 +11,9 @@ description: 需要浏览器交互、搜索筛选、资料采集或填写网页�
 
 最小任务骨架：`{task:{sessionId:"已打开的编号",requestId:"唯一调用编号",goal:"完整原始要求",allowedOrigins:["允许的origin"],subgoals:[{id:"read",goal:"读取当前页面标题",checks:[{kind:"title",notEmpty:true}],extract:[{name:"title",source:"title"}]}],completionChecks:[{kind:"evidence",subgoal:"read"}]}}`。按实际业务替换阶段和检查，不能用这一骨架的标题检查冒充用户任务已完成。
 
-先打开会话，明确 `allowedOrigins`。登录由用户完成，不复制个人浏览器 cookies。`jev_session inspect` 返回新鲜 ref；接管动作只能使用这些 ref。浏览器会话和权限由各宿主分别拥有。
+需要登录态时，先用 `jev_session list` 查同一宿主的已有会话，再用 `profiles` 查持久档案。已有会话仍打开时复用其编号；会话已关闭时使用原 `profileId`，或用 `useProfile` 将已确认的档案设为该宿主默认。不得为验收轮次、日期或新任务另建空档案后反复要求用户登录。`open` 未指定档案时复用持久默认档案；明确需要隔离身份时才指定新 `profileId`。默认档案被删除或损坏时返回错误，不悄悄新建替代。
+
+打开会话时明确 `allowedOrigins`。登录由用户完成，不复制个人浏览器 cookies，也不跨宿主复制档案。`close`、运行时重启及升级保留档案；网站使会话失效时才可能需要重新登录。`profiles` 仅提供档案和会话元数据，不保证网站当前仍认可登录态；使用同一档案重新观察实际网页。档案正在被其他进程使用时先核对所有者与现场，不换空档案绕过互斥。`jev_session inspect` 返回新鲜 ref；接管动作只能使用这些 ref。
 
 采集前先 inspect 实际结果页；候选中的 selector 是宿主刚观测到的定位信息，可用于本页检查和采集，不要凭网站印象猜选择器。页面改变后重新观测。阶段 checks 仅放实际网页状态检查；`kind:"evidence"` 仅用于 task.completionChecks，不能放在阶段自身 checks 中。引用阶段数据只能指向更早的阶段。Jev 仍只选择候选编号，不生成代码或定位器。
 

@@ -6,7 +6,7 @@
 
 A Jev-powered execution toolkit, starting with browser automation.
 
-[![Version: 1.0.0-rc.7](https://img.shields.io/badge/version-1.0.0--rc.7-orange)](https://github.com/q1325833367/inspire-jev/releases/tag/v1.0.0-rc.7)
+[![Version: 1.0.0-rc.8](https://img.shields.io/badge/version-1.0.0--rc.8-orange)](https://github.com/q1325833367/inspire-jev/releases/tag/v1.0.0-rc.8)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 InspireJev lets a main agent use Jev tools first for continuous browser execution, including search, filtering, data collection, and form filling. The main agent retains the full objective and handles planning, authorization, verification, and takeover. Jev selects actions from candidates observed on the current page.
@@ -29,7 +29,7 @@ Runtime dependencies: **Node.js 24+**, Playwright 1.63, MCP SDK, Undici, Zod, an
 Install Node.js 24 or later, then install the RC release package and Chromium:
 
 ```sh
-npm install --global https://github.com/q1325833367/inspire-jev/releases/download/v1.0.0-rc.7/inspire-jev-1.0.0-rc.7.tgz
+npm install --global https://github.com/q1325833367/inspire-jev/releases/download/v1.0.0-rc.8/inspire-jev-1.0.0-rc.8.tgz
 npx playwright@1.63.0 install chromium
 inspire-jev setup
 inspire-jev install --entry gpt
@@ -123,6 +123,8 @@ The [compatibility matrix](docs/COMPATIBILITY.md) records host versions, entries
 Typical tasks include searching and filtering results, comparing detail pages, collecting web tables, locating sections with sources, and filling drafts after the user has signed in.
 
 For direct tool calls, first open an allowed origin with `jev_session`:
+
+The default browser profile persists across sessions, runtime restarts, and upgrades. Existing installations can list profiles with `profiles` and select a default with `useProfile`. Specify a new `profileId` only when account isolation is needed. A website may expire a login; profiles remain separate between hosts.
 
 ```json
 {

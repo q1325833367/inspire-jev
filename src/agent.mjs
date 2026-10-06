@@ -93,6 +93,7 @@ export class Agent {
   async call(name,args={},options={}){
     if(name==='jev_session'){
       const {action,...rest}=args;
+      if(action==='profiles')return this.sessions.profiles();if(action==='useProfile')return this.sessions.useProfile(rest.profileId);
       if(action==='open')return this.sessions.open(rest);if(action==='list')return this.sessions.list();if(action==='inspect'){const owner=this.sessionRuns.get(this.sessions.get(rest.sessionId).adapter.identity);if(owner)return{status:'running',reason:'TAB_BUSY',runId:owner};return this.sessions.inspect(rest.sessionId,rest);}
       if(action==='act')return this.act(rest,options);if(action==='close'){for(const id of this.controllers.keys()){const r=await this.store.read('runs',id);if(r.sessionId===rest.sessionId)throw Error('会话正在执行；先取消并等待动作核对结束');}return this.sessions.close(rest.sessionId);}throw Error('无效会话操作');
     }
