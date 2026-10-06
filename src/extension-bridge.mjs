@@ -31,10 +31,10 @@ async function operation(page,p){
   if(p.op==='identity')return{targetId:info.targetId,url:page.url(),title:await page.title()};
   if(p.op==='tabs'){
     const tabs=[];
-    for(const item of page.context().pages()){
+    for(const [index,item] of page.context().pages().entries()){
       const cdp=await page.context().newCDPSession(item);let target;
       try{target=(await cdp.send('Target.getTargetInfo')).targetInfo;}finally{await cdp.detach();}
-      tabs.push({targetId:target.targetId,url:item.url(),title:await item.title(),selected:item===page});
+      tabs.push({index,targetId:target.targetId,url:item.url(),title:await item.title(),selected:item===page});
     }return tabs;
   }
   const frames=page.frames();
@@ -121,8 +121,10 @@ export class ExtensionBridge{
     });
   }
   async select(targetId){
-    const tabs=await this.perform('tabs');const index=tabs.findIndex(t=>t.targetId===targetId);
-    if(index<0)throw fail('TAB_GONE','原标签页不在当前授权范围；不会新建替代页面');
+    const tabs=await this.perform('tabs');const selected=tabs.find(t=>t.targetId===targetId);
+    if(!selected)throw fail('TAB_GONE','原标签页不在当前授权范围；不会新建替代页面');
+    const index=selected.index;
+    if(!Number.isInteger(index)||index<0)throw fail('EXTENSION_BACKEND_INCOMPATIBLE','标签页缺少后端选择编号');
     await this.serial(()=>this.client.callTool({name:'browser_tabs',arguments:{action:'select',index}}));
     return this.perform('identity',{targetId});
   }

@@ -6,7 +6,8 @@ import {dirname,join} from 'node:path';
 import {runInNewContext} from 'node:vm';
 import {webcrypto} from 'node:crypto';
 import {patchExtensionProtocol} from '../src/extension-compat.mjs';
-import {publicBrowserMetadata} from '../src/extension-bridge.mjs';
+import {publicBrowserMetadata,ExtensionBridge} from '../src/extension-bridge.mjs';
+import {navigationEffectMatches} from '../src/extension-adapter.mjs';
 
 test('扩展身份兼容补丁只读取已授权标签页，拒绝其他命令与版本变化',async()=>{
   const require=createRequire(import.meta.url),backend=createRequire(require.resolve('@playwright/mcp/package.json'));
@@ -40,6 +41,25 @@ test('扩展身份兼容补丁只读取已授权标签页，拒绝其他命令�
   position._page={frameManager:{frame:()=>{throw Error('根 frame 不能按浏览器目标编号查找');}}};
   const coordinates=await position._framePosition();
   assert.equal(coordinates.x,0);assert.equal(coordinates.y,0);
+});
+
+test('选择物理标签页保留上游编号，不使用过滤后的列表位置',async()=>{
+  const bridge=new ExtensionBridge({});const selected=[];
+  bridge.client={callTool:async args=>selected.push(args.arguments.index)};
+  bridge.perform=async op=>op==='tabs'?publicBrowserMetadata([
+    {index:0,targetId:'auth',url:'chrome-extension://example/connect.html'},
+    {index:1,targetId:'business',url:'https://example.com/'}
+  ],'tabs'):{targetId:'business'};
+  assert.equal((await bridge.select('business')).targetId,'business');
+  assert.deepEqual(selected,[1]);
+  await assert.rejects(bridge.select('missing'),e=>e.code==='TAB_GONE');
+});
+
+test('导航效果忽略已知追踪参数但保留业务参数、来源和路由',()=>{
+  assert.equal(navigationEffectMatches('https://example.com/app#/new','https://example.com/app?spm=tracking&utm_source=campaign#/new'),true);
+  assert.equal(navigationEffectMatches('https://example.com/app?id=2#/new','https://example.com/app?id=1#/new'),false);
+  assert.equal(navigationEffectMatches('https://other.example/app#/new','https://example.com/app#/new'),false);
+  assert.equal(navigationEffectMatches('https://example.com/app#/old','https://example.com/app#/new'),false);
 });
 
 test('连接页地址不返回 token，标签页列表仅返回业务网页',()=>{

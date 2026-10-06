@@ -10,7 +10,7 @@ export function extensionAdapter(bridge,{targetId,sessionId,allowedOrigins=[]}){
     navigationState:()=>({urls:history.slice(),index:history.length-1}),
     async capabilities(){return{driver:'playwright-extension',browserId:bridge.browserId,implemented:['click','fill','check','select','press','scroll','back','wait','observe'],frames:'implemented',siteTools:false};},
     async observe(options={}){
-      const cursor=options.cursor||nextCursor;nextCursor=null;
+      const cursor=options.cursor||nextCursor||(lastPage?.frameId?{frameId:lastPage.frameId}:undefined);nextCursor=null;
       const r=await call('observe',{frameId:cursor?.frameId,options:{cursor,limits:options.limits}});
       if(r.reason==='needs_origin')throw Object.assign(Error('当前 frame 来源未授权'),{code:'NEEDS_ORIGIN',details:r});
       if(!r.page)throw Object.assign(Error('原页面尚未准备好'),{code:'PAGE_NOT_READY'});
@@ -56,7 +56,7 @@ export function extensionAdapter(bridge,{targetId,sessionId,allowedOrigins=[]}){
       return{data,coverage,url:lastPage?.url};
     },
     async checkAction(a){
-      if(a.effectUrl||a.href){const r=await call('identity');return{ok:r.url===(a.effectUrl||new URL(a.href,a.documentUrl||r.url).href)};}
+      if(a.effectUrl||a.href){const r=await call('identity');return{ok:a.effectUrl?r.url===a.effectUrl:navigationEffectMatches(r.url,new URL(a.href,a.documentUrl||r.url).href)};}
       const kinds={fill:'field',check:'checked',select:'selected'};
       if(!kinds[a.kind])return{ok:false,reason:'effect_requires_business_check'};
       const guard=await call('probe',{frameId:a.frameId,action:{documentId:a.documentId,documentUrl:a.documentUrl}});if(!guard.ok)return guard;
@@ -70,4 +70,9 @@ export function extensionAdapter(bridge,{targetId,sessionId,allowedOrigins=[]}){
     resolveRef(ref){const a=registry.get(ref);if(!a)throw Error('引用已过期，请重新观测');return a;},
     publicView(p=lastPage){return p;}
   };return api;
+}
+
+export function navigationEffectMatches(actual,expected){
+  const normalize=value=>{const url=new URL(value);for(const key of [...url.searchParams.keys()])if(key==='spm'||key.startsWith('utm_'))url.searchParams.delete(key);return url.href;};
+  return normalize(actual)===normalize(expected);
 }

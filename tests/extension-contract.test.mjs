@@ -34,6 +34,7 @@ test('官方后端契约：原标签页、旧引用、取消、frame身份及断
     const child=frame.actions.find(a=>a.kind==='fill');assert.ok(child.frameId);assert.notEqual(child.frameId,fresh.frameId);
     await a.execute(child,'frame value');assert.equal(await page.frameLocator('iframe').locator('input').inputValue(),'frame value');
     const check=await a.check([{kind:'field',label:'Frame field',equals:'frame value',frameId:child.frameId}]);assert.equal(check.ok,true);
+    assert.equal((await a.observe()).frameId,child.frameId);
     await assert.rejects(bridge.perform('identity',{targetId:'wrong-target'}),e=>e.code==='TAB_CHANGED');
     await assert.rejects(bridge.perform('eval',{code:'process.exit()'}),e=>e.code==='INVALID_BRIDGE_OPERATION');
     await bridge.close();bridge=null;assert.equal(page.isClosed(),false);assert.equal(page.url(),origin+'/');assert.equal(context.pages().length,1);
