@@ -1,16 +1,20 @@
 # 公共接口
 
-协议版本 2，包版本 1.0.0-rc.7。三入口注册相同五个工具，具体参数来源唯一：`src/tools.mjs`。
+协议版本 2，包版本 1.0.0-rc.8。三入口注册相同五个工具，具体参数来源唯一：`src/tools.mjs`。
 
 |工具|输入|输出|
 |---|---|---|
-|jev_session|action：open/list/inspect/act/close；会话、档案、URL、来源、目标 ref|会话信息、有限观测、新鲜目标引用或动作结果|
+|jev_session|action：open/list/profiles/useProfile/inspect/act/close；会话、档案、URL、来源、目标 ref|会话、宿主档案目录、默认档案、有限观测、新鲜目标引用或动作结果|
 |jev_run|task：sessionId、requestId、goal、inputs、subgoals、allowedOrigins、completionChecks、budget|RunResult 摘要与 checkpointId|
 |jev_resume|runId、可选 reattach|重新观测后继续；未知效果先检查|
 |jev_status|runId|状态、阶段证据、采集数据、剩余要求和模型版本|
 |jev_cancel|runId|取消请求或持久化取消状态|
 
 子目标必须有独立 checks。支持 URL、标题、范围文本、元素存在/数量、字段值、复选框、选择框、元素文字、属性检查；最终 evidence 条件引用已完成阶段。数量用 minCount/maxCount；已知值使用 equals/includes。equalsFrom/includesFrom 可引用先前阶段的 field/index 或来源 URL，resolveUrl 负责代码解析相对链接，不由模型推算。
+
+`open` 未指定 `profileId` 时使用该宿主的持久默认档案，首次为 `default`。新会话编号不代表新登录档案。`sessionId` 指向旧会话时优先复用该会话的原档案；显式 `profileId` 可隔离身份。`close` 与升级不会删除档案。
+
+旧安装可先调用 `{"action":"profiles"}` 查看本宿主档案，再调用 `{"action":"useProfile","profileId":"已有档案编号"}` 设置默认。选择写入宿主私密目录，不复制 cookies，不读取其他宿主档案，不改变已经打开的会话。目录不存在时返回 `PROFILE_NOT_FOUND`；默认档案失效时仍可列出并选择其他已有档案，不会创建空档案替代。登录态是否有效需重新观察实际网站。并发使用同一档案仍遵守互斥，不自动换档案绕过 `TAB_BUSY`。
 
 数据引用有两种互斥写法：`{subgoal:"发现阶段",field:"links",index:0,resolveUrl:true}` 读取已采集的链接并解析相对地址；`{subgoal:"发现阶段",source:"url"}` 读取该阶段页面地址。不能同时指定 field 和 source；页面地址不能加 index。无效引用在模型请求及浏览器操作前拒绝，核心错误码为 `INVALID_TASK_REFERENCE`。有效旧检查点继续兼容；旧任务定义存在混用时，检查实际效果后以新调用编号提交修正任务，原记录保留。
 

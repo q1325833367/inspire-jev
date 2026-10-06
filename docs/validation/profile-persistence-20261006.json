@@ -1,0 +1,53 @@
+{
+  "at": "2026-10-06T05:12:37.875Z",
+  "version": "1.0.0-rc.8",
+  "evidenceClass": "development",
+  "formalAcceptance": false,
+  "platform": "macOS ARM64",
+  "browserMode": "independent Chromium",
+  "invocation": "MCP stdio client; primary model not invoked in this regression",
+  "website": "https://github.com/new",
+  "manualLoginRequestedDuringTest": false,
+  "cookieValuesRead": false,
+  "cookiesCopied": false,
+  "results": [
+    {
+      "entry": "gpt",
+      "namespace": "gpt",
+      "processRestarts": 1,
+      "freshSessions": 2,
+      "existingProfileSelected": true,
+      "originalProfileReusedAfterRestart": true,
+      "authenticatedFormChecks": [
+        "verified",
+        "verified"
+      ],
+      "browserWriteActions": 0,
+      "passed": true
+    },
+    {
+      "entry": "codex-cli",
+      "namespace": "codex-cli-validation",
+      "processRestarts": 1,
+      "freshSessions": 2,
+      "existingProfileSelected": true,
+      "originalProfileReusedAfterRestart": true,
+      "authenticatedFormChecks": [
+        "verified",
+        "verified"
+      ],
+      "browserWriteActions": 0,
+      "passed": true
+    }
+  ],
+  "windowsPi": {
+    "authenticatedGithubVerified": false,
+    "status": "unverified",
+    "publicBrowserValidation": "see Windows RC.7 records; not promoted to RC.8 evidence"
+  },
+  "localChecks": {
+    "pass": 67,
+    "fail": 0,
+    "skip": 0
+  }
+}

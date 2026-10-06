@@ -1,18 +1,42 @@
 import {chromium} from 'playwright';
 import {join} from 'node:path';
 import {randomUUID} from 'node:crypto';
-import {mkdir,chmod} from 'node:fs/promises';
+import {mkdir,chmod,readFile,readdir,stat} from 'node:fs/promises';
 import {acquire} from './locks.mjs';
-import {safeId} from './storage.mjs';
+import {safeId,atomicJSON} from './storage.mjs';
 import {browserAdapter} from './browser-adapter.mjs';
 
 export class Sessions {
   constructor(config,store){this.config=config;this.store=store;this.opened=new Map();}
+  async defaultProfile(){
+    try{
+      const value=JSON.parse(await readFile(join(this.store.root,'browser-profile.json'),'utf8'));
+      const id=safeId(value.profileId);
+      if(!(await stat(join(this.store.root,'profiles',id))).isDirectory())throw Error('所选档案不存在');
+      return id;
+    }catch(e){if(e.code==='ENOENT'&&e.path===join(this.store.root,'browser-profile.json'))return 'default';throw Object.assign(Error('默认浏览器档案不可用；先列出并选择已有档案'),{code:'PROFILE_NOT_FOUND'});}
+  }
+  async useProfile(profileId){
+    const id=safeId(profileId);
+    try{if(!(await stat(join(this.store.root,'profiles',id))).isDirectory())throw Error('不是档案目录');}
+    catch{throw Object.assign(Error('浏览器档案不存在；不会创建空档案替代'),{code:'PROFILE_NOT_FOUND'});}
+    await atomicJSON(join(this.store.root,'browser-profile.json'),{profileId:id});
+    return{host:this.config.host,defaultProfileId:id,profileRetained:true};
+  }
+  async profiles(){
+    let selected,defaultError;try{selected=await this.defaultProfile();}catch(e){defaultError=e.code;}
+    const sessions=await this.store.list('sessions');
+    const directories=await readdir(join(this.store.root,'profiles'),{withFileTypes:true});
+    return{host:this.config.host,defaultProfileId:selected,defaultError,profiles:directories.filter(d=>d.isDirectory()).map(d=>{
+      const records=sessions.filter(s=>s.profileId===d.name).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)),last=records[0];
+      return{profileId:d.name,isDefault:d.name===selected,openSessionIds:[...this.opened.values()].filter(s=>s.record.profileId===d.name).map(s=>s.record.id),label:last?.label,lastUrl:last?.lastUrl,updatedAt:last?.updatedAt};
+    })};
+  }
   async open({sessionId,profileId,url,allowedOrigins=[],headless=false,label='浏览器会话'}={}){
     const id=sessionId?safeId(sessionId):randomUUID();
     if(this.opened.has(id)){if(url)throw Error('会话已打开；导航须使用原现场动作或新建会话');return this.info(id);}
     let previous;try{previous=await this.store.read('sessions',id);}catch(e){if(e.code!=='ENOENT')throw e;}
-    const profile=safeId(profileId||previous?.profileId||id);
+    const profile=safeId(profileId||previous?.profileId||await this.defaultProfile());
     const origins=allowedOrigins.length?allowedOrigins:previous?.allowedOrigins||[];
     if(!origins.length)throw Error('会话需要允许来源');
     for(const origin of origins)if(new URL(origin).origin!==origin||!['http:','https:'].includes(new URL(origin).protocol))throw Error('来源必须是 HTTP(S) origin');

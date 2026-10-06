@@ -6,12 +6,12 @@
 
 A Jev-powered execution toolkit, starting with browser automation.
 
-[![版本：1.0.0-rc.7](https://img.shields.io/badge/version-1.0.0--rc.6-orange)](https://github.com/q1325833367/inspire-jev/releases)
+[![版本：1.0.0-rc.8](https://img.shields.io/badge/version-1.0.0--rc.8-orange)](https://github.com/q1325833367/inspire-jev/releases/tag/v1.0.0-rc.8)
 [![许可证：MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 InspireJev 让主 Agent 优先通过 Jev 工具连续执行网页交互，适用于搜索筛选、资料采集和表单填写。主 Agent 保留完整目标，负责规划、授权、结果核验与必要接管；Jev 从当前页面实际观测到的候选中选择动作。
 
-当前版本为 **RC**：六个平台的核心 CI 回归及真实网页适配器流程已通过，macOS 本地 55 项回归已通过；54 项正式端到端验收尚未完成。详细证据与门槛见[兼容矩阵](docs/COMPATIBILITY.md)和[验收说明](docs/ACCEPTANCE.md)。
+当前版本为 **RC**：六个平台的核心 CI 回归及真实网页适配器流程已通过，macOS 本地 61 项回归已通过。Windows 11 ARM64 实机已验证 Pi、MCP、51 次真实网站操作及重启续跑；54 次正式端到端验收与速度对照尚未完成。详细证据与门槛见[兼容矩阵](docs/COMPATIBILITY.md)和[验收说明](docs/ACCEPTANCE.md)。
 
 ## 工作方式
 
@@ -29,7 +29,7 @@ InspireJev 让主 Agent 优先通过 Jev 工具连续执行网页交互，适用
 先安装 Node.js 24 或更高版本，再安装 RC 发布包及 Chromium：
 
 ```sh
-npm install --global https://github.com/q1325833367/inspire-jev/releases/download/v1.0.0-rc.7/inspire-jev-1.0.0-rc.7.tgz
+npm install --global https://github.com/q1325833367/inspire-jev/releases/download/v1.0.0-rc.8/inspire-jev-1.0.0-rc.8.tgz
 npx playwright@1.63.0 install chromium
 inspire-jev setup
 inspire-jev install --entry gpt
@@ -113,7 +113,7 @@ inspire-jev mcp --host mcp
 | 平台 | 当前验证状态 |
 | --- | --- |
 | macOS | ARM64 / x64 CI 回归与真实网页适配器流程通过；正式宿主验收未完成 |
-| Windows | Windows 11 ARM64 / Server x64 CI 通过；本机 Windows 11 VM 待验证 |
+| Windows | Windows 11 ARM64 / Server x64 CI 通过；本机 ARM64 已验证 Pi、MCP、取消、恢复及安装生命周期 |
 | Linux | ARM64 / x64 CI 回归与真实网页适配器流程通过 |
 
 宿主版本、入口、浏览器能力和平台前置条件以[兼容矩阵](docs/COMPATIBILITY.md)为准。54 项正式验收状态见[验收说明](docs/ACCEPTANCE.md)。
@@ -123,6 +123,8 @@ inspire-jev mcp --host mcp
 常见任务：搜索并筛选结果、比较多条详情、采集网页表格、定位章节并附来源，以及在用户已登录的现场填写草稿。
 
 直接调用工具时，先用 `jev_session` 打开允许的来源：
+
+默认复用该宿主的持久浏览器档案，关闭会话、重启和升级保留登录态。旧安装用 `profiles` 列出已有档案，使用 `useProfile` 选择默认档案；明确需要隔离账号时再指定新的 `profileId`。网站使登录失效时才可能需要重新登录，各宿主的档案保持独立。
 
 ```json
 {
