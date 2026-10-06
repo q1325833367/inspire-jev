@@ -11,7 +11,7 @@ A Jev-powered execution toolkit, starting with browser automation.
 
 InspireJev 让主 Agent 优先通过 Jev 工具连续执行网页交互，适用于搜索筛选、资料采集和表单填写。主 Agent 保留完整目标，负责规划、授权、结果核验与必要接管；Jev 从当前页面实际观测到的候选中选择动作。
 
-当前版本为 **RC**：六个平台的核心 CI 回归及真实网页适配器流程已通过，macOS 本地 61 项回归已通过。Windows 11 ARM64 实机已验证 Pi、MCP、51 次真实网站操作及重启续跑；54 次正式端到端验收与速度对照尚未完成。详细证据与门槛见[兼容矩阵](docs/COMPATIBILITY.md)和[验收说明](docs/ACCEPTANCE.md)。
+当前版本为 **RC**：六个平台的核心 CI 回归及真实网页适配器流程已通过，macOS 本地核心回归已通过。Windows 11 ARM64 实机已验证 Pi、MCP、51 次真实网站操作及重启续跑；54 次正式端到端验收与速度对照尚未完成。详细证据与门槛见[兼容矩阵](docs/COMPATIBILITY.md)和[验收说明](docs/ACCEPTANCE.md)。
 
 ## 工作方式
 

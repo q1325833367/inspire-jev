@@ -9,6 +9,7 @@ import {acquire} from './locks.mjs';
 import {localTrace} from './runtime.mjs';
 import {sourceDigest,packageRoot} from './release-files.mjs';
 import {verificationChecksSchema} from './tools.mjs';
+import {pathToFileURL} from 'node:url';
 
 const digest=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
 export class Agent {
@@ -17,7 +18,9 @@ export class Agent {
     config.buildFingerprint=await sourceDigest(packageRoot);
     const store=await new Store(config.home,config.host).init();
     await store.cleanup({dryRun:false});
-    return new Agent(config,store,overrides.services);
+    const agent=new Agent(config,store,overrides.services);
+    if(process.env.INSPIRE_JEV_TEST_OBSERVER){const module=await import(pathToFileURL(process.env.INSPIRE_JEV_TEST_OBSERVER).href);agent.observer=await module.createObserver(agent);agent.sessions.observer=agent.observer;}
+    return agent;
   }
   constructor(config,store,services){this.config=config;this.store=store;this.sessions=new Sessions(config,store);this.injectedServices=services;this.controllers=new Map();this.sessionRuns=new Map();this.serviceSets=new Set();this.cleanupTimer=setInterval(()=>store.cleanup({dryRun:false}).catch(()=>{}),6*3600000);this.cleanupTimer.unref();}
   async services(trace){if(this.injectedServices)return this.injectedServices;const service=createServices(await loadConfig(this.config.envFile),{trace,proxy:this.config.modelProxy});this.serviceSets.add(service);return service;}
@@ -83,9 +86,11 @@ export class Agent {
     const pending=(await this.store.list('supervisor')).find(e=>(e.sessionId===sessionId||profileId&&e.profileId===profileId)&&e.isSubmit&&e.issued&&e.effect!=='effect_observed');
     return pending?{status:'handoff',reason:'uncertain_action',actionId:pending.id,requiresVerification:true}:null;
   }
-  async act({sessionId,ref,value,authorizedSubmit=false,runId},options={}){
+  async act({sessionId,ref,value,generate,authorizedSubmit=false,runId},options={}){
     const unknown=await this.unknownSubmission(sessionId);if(unknown)return unknown;
     const s=this.sessions.get(sessionId),action=s.adapter.resolveRef(ref);
+    if(generate&&(action.kind!=='fill'||action.sensitive||value!==undefined))throw Error('新文字生成仅用于非敏感填写目标，不能同时提供明确值');
+    if(action.kind==='fill'&&value===undefined&&!generate||action.kind==='check'&&typeof value!=='boolean')return{status:'handoff',reason:'missing_input_value'};
     if(action.isSubmit&&!authorizedSubmit)return{status:'handoff',reason:'submit_authorization_required'};
     if(action.frameUrl&&!s.record.allowedOrigins.includes(action.frameOrigin||new URL(action.frameUrl).origin))throw Error('目标 frame 来源未授权');
     if(action.href&&!s.record.allowedOrigins.includes(new URL(action.href,action.documentUrl||s.record.lastUrl).origin))throw Error('目标来源未授权');
@@ -97,6 +102,8 @@ export class Agent {
     try{
       if(options.signal?.aborted)return{status:'cancelled'};
       if(!(await s.adapter.validate(action)).ok)return{status:'handoff',reason:'target_changed'};
+      let textGeneration;
+      if(generate){const services=await this.services();try{const result=await services.generate({instruction:generate,field:{label:action.label,role:action.role}},options.signal);value=result.text;textGeneration={model:result.model,usage:result.usage,latency_ms:result.latency_ms};intent.expectedHash=createHash('sha256').update(String(value)).digest('hex');}finally{if(!this.injectedServices){await services.close?.();this.serviceSets.delete(services);}}if(!(await s.adapter.validate(action)).ok)return{status:'handoff',reason:'target_changed'};}
       await this.store.write('supervisor',id,entry);
       if(options.signal?.aborted){entry.phase='not_issued';entry.effect='not_executed';await this.store.write('supervisor',id,entry);return{status:'cancelled',actionId:id,effect:entry.effect};}
       entry.issued=true;entry.phase='dispatching';await this.store.write('supervisor',id,entry);
@@ -105,8 +112,8 @@ export class Agent {
       const page=await this.sessions.inspect(sessionId),effect=await s.adapter.checkAction(intent);
       if(effect.ok){entry.effect='effect_observed';entry.verifiedAt=Date.now();}
       await this.store.write('supervisor',id,entry);
-      return{status:'executed',actionId:id,effect:entry.effect,requiresVerification:entry.effect!=='effect_observed',page};
-    }catch(e){if(e.notIssued){entry.issued=false;entry.phase='not_issued';entry.effect='not_executed';}entry.error=e.code||e.name;await this.store.write('supervisor',id,entry);return{status:'handoff',reason:entry.issued?'uncertain_action':'runtime_error',actionId:id,effect:entry.effect};}
+      return{status:'executed',actionId:id,effect:entry.effect,requiresVerification:entry.effect!=='effect_observed',page,textGeneration};
+    }catch(e){if(e.notIssued||!entry.issued){entry.issued=false;entry.phase='not_issued';entry.effect='not_executed';}entry.error=e.code||e.name;await this.store.write('supervisor',id,entry);return{status:'handoff',reason:entry.issued?'uncertain_action':'runtime_error',actionId:id,effect:entry.effect};}
     finally{await release();}
   }
   async verifyAction({sessionId,actionId,checks=[]}){
@@ -126,6 +133,14 @@ export class Agent {
     }finally{await release();}
   }
   async call(name,args={},options={}){
+    if(!this.observer)return this.dispatch(name,args,options);
+    options={...options,signal:AbortSignal.any([options.signal,this.observer.signal].filter(Boolean))};
+    const ticket=await this.observer.beforeTool(name,args);
+    try{const result=await this.dispatch(name,args,options);await this.observer.afterTool(ticket,name,args,result);return result;}
+    catch(error){await this.observer.toolError(ticket,name,error);throw error;}
+  }
+  async dispatch(name,args={},options={}){
+    if(options.signal?.aborted&&(name==='jev_run'||name==='jev_resume'||name==='jev_session'&&['open','act'].includes(args.action)))return{status:'cancelled',reason:'host_cancelled'};
     if(name==='jev_session'){
       const {action,...rest}=args;
       if(action==='profiles')return this.sessions.profiles();if(action==='useProfile')return this.sessions.useProfile(rest.profileId);

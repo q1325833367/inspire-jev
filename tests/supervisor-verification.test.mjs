@@ -46,3 +46,10 @@ test('执行层明确未发出时保留未执行状态，准备后取消不填�
   const stopped=await agent.act({sessionId:session.id,ref:await ref(adapter,'名字'),value:'不应填写'},{signal:controller.signal});
   assert.equal(stopped.status,'cancelled');assert.equal(stopped.effect,'not_executed');assert.equal(await page.locator('input').inputValue(),'');
 }));
+test('单步新文字只生成一次，缺值不写入，生成期间用户改值时不覆盖',async()=>fixture(async({agent,session,adapter,page})=>{
+  let calls=0;agent.injectedServices={generate:async()=>{calls++;return{text:'新生成文字',model:'text-test',usage:{output_tokens:3},latency_ms:1};}};
+  assert.equal((await agent.act({sessionId:session.id,ref:await ref(adapter,'名字')})).reason,'missing_input_value');assert.equal(await page.locator('input').inputValue(),'');assert.equal(calls,0);
+  const generated=await agent.act({sessionId:session.id,ref:await ref(adapter,'名字'),generate:'生成新文字'});assert.equal(generated.textGeneration.model,'text-test');assert.equal(generated.effect,'effect_observed');assert.equal(calls,1);
+  agent.injectedServices.generate=async()=>{await page.locator('input').fill('用户改变的值');return{text:'不应覆盖',model:'text-test'};};
+  assert.equal((await agent.act({sessionId:session.id,ref:await ref(adapter,'名字'),generate:'生成另一段文字'})).reason,'target_changed');assert.equal(await page.locator('input').inputValue(),'用户改变的值');
+}));

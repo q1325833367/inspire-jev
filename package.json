@@ -42,7 +42,7 @@
     "check": "node scripts/check.mjs",
     "doctor": "node src/cli.mjs doctor",
     "mcp": "node src/cli.mjs mcp",
-    "acceptance": "node scripts/acceptance.mjs",
+    "acceptance": "node scripts/acceptance-round.mjs",
     "check:secrets": "node scripts/scan-secrets.mjs",
     "test:public": "node scripts/public-smoke.mjs",
     "package": "node scripts/package.mjs"

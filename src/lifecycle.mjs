@@ -75,6 +75,7 @@ export async function installEntries({entry='all',entrySet,root=packageRoot,down
   const wanted=entrySet??(entry==='all'?entries:[entry]);if(wanted.some(x=>!entries.includes(x)))throw Error('入口集合无效');
   const selected=[];for(const item of wanted){if(item==='mcp'||await commandAvailable(item==='gpt'?'codex':'pi'))selected.push(item);else if(entry!=='all'||entrySet)throw Object.assign(Error(`宿主 ${item} 未安装`),{code:'HOST_NOT_INSTALLED'});}
   const release=await prepareRelease(root,pkg,config,{downloadBrowser,candidateId});
+  if(candidateId&&wanted.length===0)return{staged:true,candidateId,version:pkg.version,release,installed:[],credentialsRetained:true,profilesRetained:true};
   const previous=await readInstall(config.home),done=[],failed=[];let mcp;
   for(const item of selected){try{const result=await refreshHosts(release,item,config);if(item==='mcp')mcp=result;done.push(item);}catch(e){failed.push({entry:item,error:e.code||e.name,message:e.message});}}
   const record=updatedInstall(previous,{version:pkg.version,release,done});if(!wanted.length){record.version=pkg.version;record.release=release;record.previousVersion=previous.version;}

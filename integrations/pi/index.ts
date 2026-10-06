@@ -12,7 +12,8 @@ export default function(pi:any){
     parameters:Type.Unsafe(toolJSONSchema(d)),
     async execute(toolCallId:string,params:any,signal:AbortSignal,onUpdate:any,ctx:any){
       const args=d.schema.parse(params);
-      const result=await(await get()).call(d.name,args,{signal,onProgress:async(progress:any)=>onUpdate?.({content:[{type:'text',text:JSON.stringify(progress)}],details:{progress}})});
+      const agent:any=await get();await agent.observer?.nativeTools(pi.getActiveTools());
+      const result=await agent.call(d.name,args,{signal,onProgress:async(progress:any)=>onUpdate?.({content:[{type:'text',text:JSON.stringify(progress)}],details:{progress}})});
       if(result?.runId)pi.appendEntry('jev-run',{runId:result.runId,sessionId:result.sessionId,status:result.status});
       return{content:[{type:'text',text:JSON.stringify(result)}],details:{result}};
     }

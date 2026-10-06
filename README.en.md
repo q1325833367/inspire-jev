@@ -11,7 +11,7 @@ A Jev-powered execution toolkit, starting with browser automation.
 
 InspireJev lets a main agent use Jev tools first for continuous browser execution, including search, filtering, data collection, and form filling. The main agent retains the full objective and handles planning, authorization, verification, and takeover. Jev selects actions from candidates observed on the current page.
 
-This version is a **release candidate**: core CI regressions and the real browser adapter flow have passed on six platforms, with 61 local regressions passing on macOS. Native Windows 11 ARM64 validation covers Pi, MCP, a 51-action real-site task, and restart/resume. The 54-run formal acceptance suite and speed comparison remain unfinished. See the [compatibility matrix](docs/COMPATIBILITY.md) and [acceptance protocol](docs/ACCEPTANCE.md) for evidence and gates.
+This version is a **release candidate**: core CI regressions and the real browser adapter flow have passed on six platforms, with local core regressions passing on macOS. Native Windows 11 ARM64 validation covers Pi, MCP, a 51-action real-site task, and restart/resume. The 54-run formal acceptance suite and speed comparison remain unfinished. See the [compatibility matrix](docs/COMPATIBILITY.md) and [acceptance protocol](docs/ACCEPTANCE.md) for evidence and gates.
 
 ## How it works
 

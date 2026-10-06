@@ -26,7 +26,7 @@ try{
   out({configured:true,home:configured.config.home,trace:false,models:publicCredentials(await readCredentials(configured.config.envFile,{requireKey:false})),installed});
  }else if(command==='config')out(await configCommand(argv[0]||'show',argv[1],{stdin:argv.includes('--stdin')}));
  else if(command==='linux-sandbox-profile')process.stdout.write(await(await import('../scripts/linux-sandbox.mjs')).linuxSandboxProfile());
- else if(command==='install')out(await installEntries({entry:flag('entry')||'all',downloadBrowser:!argv.includes('--skip-browser'),candidateId:flag('candidate')}));
+ else if(command==='install'){if(argv.includes('--stage-only')&&!flag('candidate'))throw Error('--stage-only 需要独立 --candidate 编号');out(await installEntries({entry:flag('entry')||'all',entrySet:argv.includes('--stage-only')?[]:undefined,downloadBrowser:!argv.includes('--skip-browser'),candidateId:flag('candidate')}));}
  else if(command==='upgrade')out(await upgrade(flag('package')));
  else if(command==='rollback')out(await rollback(flag('version')));
  else if(command==='uninstall')out(await uninstall({entry:flag('entry')||'all'}));

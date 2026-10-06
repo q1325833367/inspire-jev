@@ -54,9 +54,10 @@ export class Sessions {
         if(native.entries[native.currentIndex-1]?.url===destination)return page.goBack({waitUntil:'domcontentloaded',timeout:10000});
         return page.goto(destination,{waitUntil:'domcontentloaded',timeout:10000});
       }};
-      const adapter=browserAdapter(tab,{driver:'playwright',browserId:`jev-${this.config.host}`,instanceId,sessionId:id,allowedOrigins:origins,navigationState});
+      const adapter=browserAdapter(tab,{driver:'playwright',browserId:`jev-${this.config.host}`,instanceId,sessionId:id,allowedOrigins:origins,navigationState,onExecution:event=>this.observer?.onExecution(id,event)});
       const record={id,profileId:profile,label,host:this.config.host,allowedOrigins:origins,status:'open',physicalIdentity:adapter.identity,lastUrl:page.url(),createdAt:previous?.createdAt||Date.now()};
       const session={context,page,adapter,record,release};this.opened.set(id,session);
+      await this.observer?.onSession(session);
       context.on('close',()=>this.finishClosed(id,session).catch(()=>{}));
       await this.store.write('sessions',id,record);
       if(url)await page.goto(url,{waitUntil:'domcontentloaded',timeout:20000});
