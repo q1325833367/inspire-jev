@@ -4,7 +4,7 @@
 
 |系统 / 架构|核心回归|真实浏览器|GPT 插件|Pi|stdio MCP|
 |---|---|---|---|---|---|
-|macOS ARM64|本机及 CI 61 项通过|Books 适配器流程通过|已安装 RC.7；当前桌面连接须重载并核对实际版本，正式验收待完成|Pi 0.84.3 / 官方 zai GLM 5.3 的历史开发流程经接管完成；RC.7 本机 Pi 待验证|RC.7 原生 Codex CLI / GPT 完整 Books 目标通过，1 次采集接管及 1 次参数拒绝保留|
+|macOS ARM64|RC.7 发布包本机及 CI 61 项通过|Books 适配器流程通过|RC.7 桌面对话原生 MCP 完成作者搜索、前三本详情与格式，8 次动作、0 次接管；正式验收待完成|Pi 0.84.3 / 官方 zai GLM 5.3 的历史开发流程经接管完成；RC.7 本机 Pi 待验证|RC.7 原生 Codex CLI / GPT 完整 Books 目标通过，1 次采集接管及 1 次参数拒绝保留|
 |macOS x64|CI 61 项通过|CI Books 适配器流程通过|待验证|待验证|待验证|
 |Windows 11 ARM64|CI 60 项通过，1 项平台适用跳过；实机安装通过|实机 Books 与 Gutenberg 51 次操作通过；Chromium x64 模拟|宿主可用性待验证|RC.7 Pi 0.84.3 / 官方 zai GLM 5.3 完整 Books 目标通过，4 次动作、0 次接管|RC.7 实际 stdio MCP / Jev、取消、重启及原档案续跑通过；Windows Codex CLI 模型调用待验证|
 |Windows x64|Server CI 60 项通过，1 项平台适用跳过；Windows 11 实机待验证|Server CI Books 适配器流程通过|宿主可用性待验证|待验证|待验证|
