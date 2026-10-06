@@ -1,5 +1,12 @@
 # 变更记录
 
+## 1.0.0-rc.5
+
+- Windows 私密权限通过 .NET ACL 接口设置并复核，避免 PowerShell 模块自动加载冲突。
+- Windows 进程身份检查使用原生 .NET 进程信息。
+- Linux 受限环境提供指定 Chromium 路径的 AppArmor 配置，保持浏览器沙箱启用。
+- 增加 Windows 原生权限探针与六个平台真实网站适配器 CI。
+
 ## 1.0.0-rc.4
 
 - InspireJev 清洁源码仓库，中文与英文 README。

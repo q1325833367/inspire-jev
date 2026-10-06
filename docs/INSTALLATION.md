@@ -3,11 +3,24 @@
 需要 Node.js 24，以及 [Playwright 支持的系统](https://playwright.dev/docs/intro#system-requirements)。平台实测状态见 [兼容矩阵](COMPATIBILITY.md)。
 
 ```sh
-npm install --global https://github.com/q1325833367/inspire-jev/releases/download/v1.0.0-rc.4/inspire-jev-1.0.0-rc.4.tgz
+npm install --global https://github.com/q1325833367/inspire-jev/releases/download/v1.0.0-rc.5/inspire-jev-1.0.0-rc.5.tgz
 inspire-jev setup
 ```
 
 安装包来自 GitHub Releases，依赖通过 `npm-shrinkwrap.json` 固定。发布页提供 SHA256 校验和。首次安装需要下载 Chromium；Linux 缺少系统库时按 Playwright 官方指南运行 `npx playwright@1.63.0 install-deps chromium`，再重试安装。
+
+## Linux 沙箱
+
+Ubuntu 的 AppArmor 可能限制 Chromium 使用用户命名空间。出现 `BROWSER_SANDBOX_UNAVAILABLE` 时，先确认浏览器已下载，再生成仅匹配本版浏览器路径的配置，阅读后由管理员安装：
+
+```sh
+inspire-jev linux-sandbox-profile > inspire-jev-browser.profile
+cat inspire-jev-browser.profile
+sudo install -m 644 inspire-jev-browser.profile /etc/apparmor.d/inspire-jev-browser
+sudo apparmor_parser -r /etc/apparmor.d/inspire-jev-browser
+```
+
+该配置遵循 [Chromium 的 AppArmor 指南](https://chromium.googlesource.com/chromium/src/+/main/docs/security/apparmor-userns-restrictions.md)，只允许指定浏览器使用命名空间。浏览器沙箱保持启用，系统限制保持开启。浏览器更新后重新生成；卸载时可用 `sudo apparmor_parser -R /etc/apparmor.d/inspire-jev-browser` 卸载规则，再删除该文件。未启用 AppArmor 的系统无需此操作。
 
 ## 三个入口
 
@@ -28,8 +41,8 @@ MCP 使用宿主启动的 stdio 进程，stdout 只承载协议。宿主授权�
 ## 更新与回退
 
 ```sh
-inspire-jev upgrade --package https://github.com/q1325833367/inspire-jev/releases/download/v1.0.0-rc.4/inspire-jev-1.0.0-rc.4.tgz
-inspire-jev rollback --version 1.0.0-rc.4
+inspire-jev upgrade --package https://github.com/q1325833367/inspire-jev/releases/download/v1.0.0-rc.5/inspire-jev-1.0.0-rc.5.tgz
+inspire-jev rollback --version 1.0.0-rc.5
 inspire-jev version
 ```
 

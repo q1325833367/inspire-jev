@@ -6,12 +6,12 @@
 
 A Jev-powered execution toolkit, starting with browser automation.
 
-[![Version: 1.0.0-rc.4](https://img.shields.io/badge/version-1.0.0--rc.4-orange)](https://github.com/q1325833367/inspire-jev/releases)
+[![Version: 1.0.0-rc.5](https://img.shields.io/badge/version-1.0.0--rc.5-orange)](https://github.com/q1325833367/inspire-jev/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 InspireJev lets a main agent use Jev tools first for continuous browser execution, including search, filtering, data collection, and form filling. The main agent retains the full objective and handles planning, authorization, verification, and takeover. Jev selects actions from candidates observed on the current page.
 
-This version is a **release candidate**: 47 local regressions have passed on macOS; the 54-case formal end-to-end acceptance suite is unfinished, and Windows and Linux verification is in progress. See the [compatibility matrix](docs/COMPATIBILITY.md) and [acceptance protocol](docs/ACCEPTANCE.md) for evidence and gates.
+This version is a **release candidate**: 55 local regressions have passed on macOS; the six-platform CI matrix is being verified and the 54-case formal end-to-end acceptance suite remains unfinished. See the [compatibility matrix](docs/COMPATIBILITY.md) and [acceptance protocol](docs/ACCEPTANCE.md) for evidence and gates.
 
 ## How it works
 
@@ -29,7 +29,7 @@ Runtime dependencies: **Node.js 24+**, Playwright 1.63, MCP SDK, Undici, Zod, an
 Install Node.js 24 or later, then install the RC release package and Chromium:
 
 ```sh
-npm install --global https://github.com/q1325833367/inspire-jev/releases/download/v1.0.0-rc.4/inspire-jev-1.0.0-rc.4.tgz
+npm install --global https://github.com/q1325833367/inspire-jev/releases/download/v1.0.0-rc.5/inspire-jev-1.0.0-rc.5.tgz
 npx playwright@1.63.0 install chromium
 inspire-jev setup
 inspire-jev install --entry gpt
@@ -112,9 +112,9 @@ See the [public API](docs/API.md) for parameters and states.
 
 | Platform | Current verification status |
 | --- | --- |
-| macOS | 47 local regressions passed; formal host end-to-end acceptance is unfinished |
-| Windows | Verification in progress |
-| Linux | Verification in progress |
+| macOS | ARM64 / x64 CI regressions and real browser adapter flow passed; formal host acceptance is unfinished |
+| Windows | Windows 11 ARM64 CI passed; Server x64 and local VM verification in progress |
+| Linux | ARM64 / x64 CI regressions and real browser adapter flow passed |
 
 The [compatibility matrix](docs/COMPATIBILITY.md) records host versions, entries, browser capabilities, and platform prerequisites. The [acceptance protocol](docs/ACCEPTANCE.md) tracks the 54-case formal suite.
 
