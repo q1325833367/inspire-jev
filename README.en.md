@@ -180,11 +180,21 @@ inspire-jev uninstall --entry gpt
 
 Uninstall accepts `gpt`, `pi`, `mcp`, or `all`. See the [changelog](CHANGELOG.md) for version changes and the [installation guide](docs/INSTALLATION.md) for upgrades, rollback, and local data handling.
 
-## Contributing and contact
+## Contributing
 
-Maintainer **q1325833367** is an independent developer using AI to turn ideas into useful tools. Ideas, feedback, open-source collaboration, and conversations with developer communities that build projects together are welcome.
+Feedback from real use helps shape the project. Share where an agent gets stuck, reproducible failures, or new use cases worth supporting. Testing, documentation, and usability suggestions are welcome contributions too.
 
-Use [GitHub Issues](https://github.com/q1325833367/inspire-jev/issues) or contact [1325833367@qq.com](mailto:1325833367@qq.com). Read the [contribution guide](CONTRIBUTING.md) before submitting code.
+- **Report a problem:** Include the version, operating system, integration, reproduction steps, and redacted evidence in [Issues](https://github.com/q1325833367/inspire-jev/issues).
+- **Discuss an idea:** Use [Discussions](https://github.com/q1325833367/inspire-jev/discussions) for use cases, executor design, and new host integrations. Discuss larger changes before implementing them.
+- **Submit an improvement:** Bug fixes, documentation, and compatibility validation are welcome. See the [contribution guide](CONTRIBUTING.md) for development and submission requirements. Report security issues privately through the [security channel](SECURITY.md).
+
+## Contact and collaboration
+
+I'm **q1325833367**, an independent developer using AI to turn ideas into useful open-source tools. I'd like to connect with others who are building things, exchange practical experience, try new ideas together, and improve our projects.
+
+If you have an idea, want to build a project together, or are part of a community that collaborates on open source and shares hands-on work, feel free to get in touch. Public discussions are welcome on Discussions so others can take part.
+
+Email: [1325833367@qq.com](mailto:1325833367@qq.com). A short introduction to what you're working on and what you'd like to discuss is enough.
 
 ## License and attribution
 
