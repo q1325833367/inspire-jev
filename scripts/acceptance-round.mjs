@@ -14,7 +14,7 @@ const directory=resolve('artifacts/acceptance',round),file=name=>join(directory,
 await mkdir(directory,{recursive:true,mode:0o700});
 const origins={'wiki-fields':'https://en.wikipedia.org','wiki-section':'https://en.wikipedia.org','gutenberg-author':'https://www.gutenberg.org','gutenberg-ranking':'https://www.gutenberg.org','github-public':'https://github.com','github-private-draft':'https://github.com'};
 const goals={
- 'wiki-fields':'从 Wikipedia 首页搜索 Alan Turing，读取条目标题、出生、教育、主要贡献，给出四项实际内容和来源。',
+ 'wiki-fields':'从 Wikipedia 首页搜索 Alan Turing，完整采集条目标题和信息框的 Born、Education（或 Alma mater）、Known for 字段原文，并给出四项实际内容及来源。教育必须包含高等教育机构及学位，不能仅列中小学经历；主要贡献需保留该字段全部条目。可以另附中文摘要，但不能用标签、空值或部分段落代替完整字段。',
  'wiki-section':'打开 Alan Turing 条目，通过实际页面目录进入 Death，读取章节标题及首段，给出章节来源。',
  'gutenberg-author':'从 Project Gutenberg 首页搜索 Charles Dickens，按现场搜索结果顺序逐本核查前三本详情、书号、全部元数据及完整可用阅读格式。每项格式须采集实际名称和下载／阅读地址，并给出各本详情来源；缺项如实记录，不替换书目。每本后返回，最后停在原搜索结果。',
  'gutenberg-ranking':'从 Project Gutenberg 首页进入现场昨天下载榜单，读取前十项标题、链接和下载数，保留现场顺序，再用代码按下载数降序排序。',
